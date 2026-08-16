@@ -4,12 +4,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'deliveryhub_default_secret_key_123
 
 async function register(req, res) {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, role } = req.body;
         const existing = await User.getUserByEmail(email);
         if (existing) 
             return res.status(400).json({ message: 'Email already exists' });
 
-        const newId = await User.createUser(name, email, password, 'user');
+        const userRole = role === 'admin' ? 'admin' : 'user';
+        const newId = await User.createUser(name, email, password, userRole);
         res.status(201).json({ id: newId, message: 'User registered' });
     } catch (err) {
         res.status(500).json({ error: err.message });

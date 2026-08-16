@@ -81,7 +81,8 @@ function Login() {
       api.post("/users/register", {
         name: formData.fullName,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        role: "admin"
       })
       .then(() => {
         setIsLogin(true);

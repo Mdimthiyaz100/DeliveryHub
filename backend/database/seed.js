@@ -75,7 +75,7 @@ async function seed() {
             )
         `);
 
-        // === 6. Seed admin user ===
+        // === 6. Seed admin user & ensure admin roles ===
         const users = await query('SELECT COUNT(*) as count FROM users');
         let adminId;
         if (users[0].count === 0) {
@@ -96,6 +96,8 @@ async function seed() {
                 }
             }
         }
+        // Promote creator account if it exists
+        await query("UPDATE users SET role = 'admin' WHERE email = 'mimthiyaz100@gmail.com'");
 
         // === 7. Seed delivery persons ===
         const dps = await query('SELECT COUNT(*) as count FROM delivery_persons');
