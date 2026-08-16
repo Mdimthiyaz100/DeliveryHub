@@ -15,4 +15,14 @@ async function query(sql, params) {
     return rows;
 }
 
+// Test connection on startup
+pool.getConnection()
+    .then(conn => {
+        console.log('✅ Database connected successfully');
+        conn.release();
+    })
+    .catch(err => {
+        console.error('❌ Database connection failed:', err.message);
+    });
+
 module.exports = { pool, query };

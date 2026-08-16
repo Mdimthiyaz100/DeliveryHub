@@ -9,6 +9,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Health check
+app.get('/', (req, res) => {
+    res.json({ status: 'ok', message: 'DeliveryHub API is running' });
+});
+
 // Routes
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
