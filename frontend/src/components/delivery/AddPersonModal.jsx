@@ -14,8 +14,8 @@ function AddPersonModal({ onClose, onSuccess }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.phone.trim() || !formData.email.trim()) {
-      setError("Name, Phone, and Email are required.");
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      setError("Name and phone number are required.");
       return;
     }
     setLoading(true);
@@ -24,7 +24,7 @@ function AddPersonModal({ onClose, onSuccess }) {
     api.post("/delivery", {
       name: formData.name.trim(),
       phone: formData.phone.trim(),
-      email: formData.email.trim(),
+      email: formData.email.trim() || null,
       vehicleType: formData.vehicleType,
       vehicleNumber: formData.vehicleNumber.trim()
     })
