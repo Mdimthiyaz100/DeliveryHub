@@ -98,7 +98,7 @@ function Login() {
       {/* LEFT SIDE — Image */}
       <div
         className="hidden lg:flex lg:w-1/2 bg-cover bg-center bg-no-repeat relative"
-        style={{ backgroundImage: "url('/delivery-bg.jpg')" }}
+        style={{ backgroundImage: "url('https://i.postimg.cc/fRKfLYW1/delivery-bg.jpg')" }}
       >
         <div className="absolute inset-0 bg-blue-900/20"></div>
         <div className="relative z-10 flex flex-col justify-end p-12">
