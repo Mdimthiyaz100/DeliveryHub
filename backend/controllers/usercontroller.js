@@ -1,6 +1,6 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
-const { JWT_SECRET } = require('../middleware/auth');
+const JWT_SECRET = process.env.JWT_SECRET || 'deliveryhub_default_secret_key_123';
 
 async function register(req, res) {
     try {
