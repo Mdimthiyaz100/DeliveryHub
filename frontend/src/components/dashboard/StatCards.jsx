@@ -32,7 +32,7 @@ function StatCards() {
     { title: "Total Orders", value: data.totalOrders, up: true, icon: "📦", color: "bg-blue-500" },
     { title: "Delivered", value: data.deliveredOrders, up: true, icon: "✅", color: "bg-green-500" },
     { title: "Pending", value: data.pendingOrders, up: false, icon: "⏳", color: "bg-red-500" },
-    { title: "Failed", value: data.cancelledOrders, up: false, icon: "❌", color: "bg-yellow-500" },
+    { title: "cancelled", value: data.cancelledOrders, up: false, icon: "❌", color: "bg-yellow-500" },
     { title: "assigned", value: data.assignedOrders, up: false, icon: "📋", color: "bg-sky-500"}
   ];
 
