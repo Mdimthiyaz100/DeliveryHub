@@ -51,15 +51,6 @@ function DeliveryPersonCard({ person, onAssignOrder, onDeletePerson, onToggleSta
         >
           Assign Order
         </button>
-        {onDeletePerson && (
-          <button
-            onClick={() => onDeletePerson(person.id, person.name)}
-            className="py-2 px-3 text-sm font-medium bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
-            title="Delete Delivery Person"
-          >
-            &#128465;
-          </button>
-        )}
       </div>
     </div>
   );
