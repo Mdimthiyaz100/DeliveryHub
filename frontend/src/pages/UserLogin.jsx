@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import logo from "../assets/deliverylogo.png";
 import api from "../../api/api";
 
@@ -210,12 +210,12 @@ function UserLogin() {
 
           {/* Admin link */}
           <div className="mt-6 text-center">
-            <a
-              href="/admin/login"
+            <Link
+              to="/admin/login"
               className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
             >
               Are you an admin? Login here →
-            </a>
+            </Link>
           </div>
         </div>
       </div>
