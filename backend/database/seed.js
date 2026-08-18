@@ -97,7 +97,7 @@ async function seed() {
             }
         }
         // Promote creator account if it exists
-        await query("UPDATE users SET role = 'admin' WHERE email = 'mimthiyaz100@gmail.com'");
+        await query("UPDATE users SET role = 'admin' WHERE email = 'deliveryadmin@gmail.com'");
 
         // === 7. Seed delivery persons ===
         const dps = await query('SELECT COUNT(*) as count FROM delivery_persons');
