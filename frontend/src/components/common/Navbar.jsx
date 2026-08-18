@@ -11,7 +11,7 @@ function Navbar() {
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+    <nav className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 pos-fixed">
       <div className="flex items-center justify-end">
         <div className="flex items-center gap-4">
           <button
