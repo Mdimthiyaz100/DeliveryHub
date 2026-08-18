@@ -66,18 +66,16 @@ function Sidebar() {
       {/* Bottom User Section */}
       <div className="mt-auto border-t border-gray-200 p-4">
 
-        {/* Admin Profile */}
         <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4 mb-4">
           
-          {/* Avatar */}
           <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-medium">
-            IM
+            AD
           </div>
 
           {/* User Details */}
           <div>
             <p className="font-semibold text-gray-900">
-              Imthiyaz
+              ADMINISTRATOR
             </p>
 
             <p className="text-sm text-gray-500">
@@ -92,7 +90,6 @@ function Sidebar() {
           onClick={handleLogout}
           className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-red-500 hover:bg-red-50 transition"
         >
-        
         <logout>
             Logout
             </logout>
