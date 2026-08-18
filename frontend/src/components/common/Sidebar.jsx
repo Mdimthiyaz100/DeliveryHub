@@ -16,7 +16,7 @@ function Sidebar() {
       label: "Orders",
       icon: "📦",
     },
-    {
+   {
       path: "/delivery",
       label: "Delivery",
       icon: "🚚",
@@ -57,44 +57,35 @@ function Sidebar() {
             <span className="text-xl w-6 text-center">
               {item.icon}
             </span>
-
-            <span>{item.label}</span>
+          <span>{item.label}</span>
           </Link>
         ))}
       </nav>
 
       {/* Bottom User Section */}
       <div className="mt-auto border-t border-gray-200 p-4">
-
-        <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4 mb-4">
-          
-          <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-medium">
+         <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4 mb-4">
+            <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-medium">
             AD
-          </div>
+             </div>
 
           {/* User Details */}
           <div>
             <p className="font-semibold text-gray-900">
               ADMINISTRATOR
             </p>
-
             <p className="text-sm text-gray-500">
               Admin
             </p>
           </div>
-
         </div>
 
-        {/* Logout */}
+        {/* Logout*/}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-red-500 hover:bg-red-50 transition"
-        >
-        <logout>
-            Logout
-            </logout>
+          className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-red-500 hover:bg-red-50 transition">
+            Logout            
         </button>
-
       </div>
     </aside>
   );
