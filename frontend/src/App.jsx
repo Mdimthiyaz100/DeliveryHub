@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Navbar from "./components/common/Navbar";
 import Sidebar from "./components/common/Sidebar";
 import UserNavbar from "./components/common/UserNavbar";
 import UserSidebar from "./components/common/UserSidebar";
@@ -23,9 +24,12 @@ function MainLayout({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="ml-72 min-h-screen p-8">{children}</main>
+      <div className="ml-64">
+        <Navbar />
+        <main className="p-6 pt-24">{children}</main>
+      </div>
     </div>
   );
 }
