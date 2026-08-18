@@ -22,12 +22,13 @@ async function getOrder(req, res) {
 
 async function getMyOrders(req, res) {
     try {
-        const orders = await Order.getOrdersByUserId(req.user.userId);
+        const orders = await Order.getAllOrders();
         res.json(orders);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 }
+
 
 async function createOrder(req, res) {
     try {
