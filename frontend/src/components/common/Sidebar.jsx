@@ -9,7 +9,7 @@ function Sidebar() {
     {
       path: "/dashboard",
       label: "Dashboard",
-      icon: "▦",
+      icon: "📊",
     },
     {
       path: "/orders",
@@ -24,11 +24,9 @@ function Sidebar() {
   ];
 
   const handleLogout = () => {
-    // Remove login information
+    
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-
-    // Go to login page
     navigate("/login");
   };
 
@@ -89,32 +87,15 @@ function Sidebar() {
 
         </div>
 
-        {/* Change Password */}
-        <Link
-          to="/change-password"
-          className="flex items-center gap-4 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 transition"
-        >
-          <span className="text-xl">
-            🔑
-          </span>
-
-          <span>
-            Change Password
-          </span>
-        </Link>
-
         {/* Logout */}
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-red-500 hover:bg-red-50 transition"
         >
-          <span className="text-xl">
-            ↪
-          </span>
-
-          <span>
+        
+        <logout>
             Logout
-          </span>
+            </logout>
         </button>
 
       </div>

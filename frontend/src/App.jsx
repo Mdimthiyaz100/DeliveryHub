@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Navbar from "./components/common/Navbar";
 import Sidebar from "./components/common/Sidebar";
 import UserNavbar from "./components/common/UserNavbar";
 import UserSidebar from "./components/common/UserSidebar";
@@ -57,7 +56,6 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ── Auth Pages (no layout) ── */}
         <Route path="/" element={<UserLogin />} />
         <Route path="/admin/login" element={<Login />} />
 
