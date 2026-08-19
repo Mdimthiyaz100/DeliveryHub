@@ -26,7 +26,7 @@ function getOrderQuantity(order, products) {
   return Number.isInteger(savedQuantity) && savedQuantity > 0 ? savedQuantity : 1;
 }
 
-function OrderTable({ orders: propOrders, availableDPs: propAvailableDPs, onAssign: propOnAssign, onDelete: propOnDelete, refreshTrigger }) {
+function OrderTable({ orders: propOrders, availableDPs: propAvailableDPs, onAssign: propOnAssign, onDelete: propOnDelete, refreshTrigger, statusFilter = "all" }) {
   const [orders, setOrders] = useState([]);
   const [availableDPs, setAvailableDPs] = useState([]);
   const [products, setProducts] = useState([]);
@@ -119,7 +119,9 @@ function OrderTable({ orders: propOrders, availableDPs: propAvailableDPs, onAssi
   };
 
   const rawOrders = propOrders || orders;
-  const displayOrders = [...rawOrders].sort((a, b) => Number(a.id) - Number(b.id));
+  const displayOrders = rawOrders
+    .filter((order) => statusFilter === "all" || (order.delivery_status || "pending").toLowerCase() === statusFilter)
+    .sort((a, b) => Number(a.id) - Number(b.id));
   const displayDPs = propAvailableDPs || availableDPs;
 
   return (

@@ -80,8 +80,7 @@ useEffect(() => {
             <span className="text-xs text-gray-500">{item.day}</span>
           </div>
         ))}
-      </div>
-      
+      </div>  
       {/* Legend */}
       <div className="flex justify-center gap-6 mt-4 text-sm">
         <div className="flex items-center gap-2">

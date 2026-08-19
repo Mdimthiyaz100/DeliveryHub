@@ -1,14 +1,18 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import OrderTable from "../components/orders/OrderTable";
 import api from "../../api/api";
 
 function Orders() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showModal, setShowModal] = useState(false);
   const [item, setItem] = useState("");
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const statusFilter = searchParams.get("status") || "all";
+  const filterLabel = statusFilter === "all" ? "All orders" : `${statusFilter[0].toUpperCase()}${statusFilter.slice(1)} orders`;
 
   const handleAddOrder = (e) => {
     e.preventDefault();
@@ -40,7 +44,7 @@ function Orders() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Orders</h2>
-          <p className="text-gray-500 mt-1">Manage and track all customer orders</p>
+          <p className="text-gray-500 mt-1">{statusFilter === "all" ? "Manage and track all customer orders" : `Showing ${filterLabel.toLowerCase()}`}</p>
         </div>
       </div>
 
@@ -50,7 +54,14 @@ function Orders() {
         </div>
       )}
 
-      <OrderTable refreshTrigger={refreshTrigger} />
+      {statusFilter !== "all" && (
+        <div className="flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          <span>Filter: <strong>{filterLabel}</strong></span>
+          <button type="button" onClick={() => setSearchParams({})} className="font-medium hover:underline">Clear filter</button>
+        </div>
+      )}
+
+      <OrderTable refreshTrigger={refreshTrigger} statusFilter={statusFilter} />
     </div>
   );
 }

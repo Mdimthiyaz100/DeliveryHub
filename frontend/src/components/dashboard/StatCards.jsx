@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../../api/api";
 
 function StatCards() {
+  const navigate = useNavigate();
   const [data, setData] = useState({
     totalOrders: 0,
     deliveredOrders: 0,
@@ -35,11 +37,18 @@ function StatCards() {
     { title: "cancelled", value: data.cancelledOrders, up: false, icon: "❌", color: "bg-yellow-500" },
     { title: "assigned", value: data.assignedOrders, up: false, icon: "📋", color: "bg-sky-500"}
   ];
+  const filters = ["all", "delivered", "pending", "cancelled", "assigned"];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
-        <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <button
+          key={index}
+          type="button"
+          onClick={() => navigate(filters[index] === "all" ? "/orders" : `/orders?status=${filters[index]}`)}
+          className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-left transition hover:border-blue-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label={`View ${stat.title.toLowerCase()} orders`}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-500 text-sm mb-1">{stat.title}</p>
@@ -49,13 +58,7 @@ function StatCards() {
               {stat.icon}
             </div>
           </div>
-          <p className="mt-4 text-sm">
-            <span className={stat.up ? "text-green-500 font-medium" : "text-red-500 font-medium"}>
-              {stat.change}
-            </span>
-         
-          </p>
-        </div>
+        </button>
       ))}
     </div>
   );

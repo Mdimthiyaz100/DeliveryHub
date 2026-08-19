@@ -20,39 +20,28 @@ function Sidebar() {
 
   const menuItems = [
     {
-      path: "/dashboard",
-      label: "Dashboard",
-      icon: "📊",
+      path: "/dashboard",label: "Dashboard",icon: "📊",
     },
     {
-      path: "/orders",
-      label: "Orders",
-      icon: "📦",
+      path: "/orders",label: "Orders",icon: "📦",
     },
     {
-      path: "/delivery",
-      label: "Delivery",
-      icon: "🚚",
+      path: "/delivery",label: "Delivery", icon: "🚚",
     },
     {
-      path: "/users",
-      label: "Users",
-      icon: "👥",
+      path: "/users",label: "Users",icon: "👥",
     },
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userEmail");
+    localStorage.removeItem("token");localStorage.removeItem("role");
+    localStorage.removeItem("userName");localStorage.removeItem("userEmail");
     localStorage.removeItem("user");
     navigate("/admin/login");
   };
 
   return (
     <aside className="w-64 bg-white h-screen shadow-md fixed left-0 top-0 flex flex-col z-30">
-
       {/* Logo */}
       <div className="flex justify-center py-6">
         <img
@@ -61,7 +50,6 @@ function Sidebar() {
           className="w-48 h-auto"
         />
       </div>
-
       {/* Menu */}
       <nav className="px-4 space-y-2 flex-1">
         {menuItems.map((item) => (
