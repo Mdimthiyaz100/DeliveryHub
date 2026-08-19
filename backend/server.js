@@ -1,8 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const seed = require('./database/seed');
-
 const app = express();
 
 // Middleware
@@ -22,8 +20,6 @@ app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    // Run database seeder
-    await seed();
 });
