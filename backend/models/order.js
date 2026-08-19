@@ -29,22 +29,12 @@ async function getOrdersByUserId(userId) {
 }
 
 async function createOrder(userId, item, amount, recipientName, customerPhone, deliveryAddress, paymentMethod, quantity = 1) {
-    try {
-        const result = await query(
-            `INSERT INTO orders (user_id, item, quantity, amount, recipient_name, customer_phone, delivery_address, payment_method, delivery_status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [userId, item, quantity || 1, amount, recipientName || null, customerPhone || null, deliveryAddress || null, paymentMethod || null, 'pending']
-        );
-        return result.insertId;
-    } catch (err) {
-        // Fallback in case column doesn't exist yet
-        const result = await query(
-            `INSERT INTO orders (user_id, item, amount, recipient_name, customer_phone, delivery_address, payment_method, delivery_status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [userId, item, amount, recipientName || null, customerPhone || null, deliveryAddress || null, paymentMethod || null, 'pending']
-        );
-        return result.insertId;
-    }
+    const result = await query(
+        `INSERT INTO orders (user_id, item, quantity, amount, recipient_name, customer_phone, delivery_address, payment_method, delivery_status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [userId, item, quantity, amount, recipientName || null, customerPhone || null, deliveryAddress || null, paymentMethod || null, 'pending']
+    );
+    return result.insertId;
 }
 
 async function updateOrderStatus(orderId, status) {

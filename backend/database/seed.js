@@ -60,7 +60,7 @@ async function seed() {
             try {
                 await query(`ALTER TABLE orders ADD COLUMN ${column} ${definition}`);
             } catch (e) {
-                // Column already exists
+                if (e.code !== 'ER_DUP_FIELDNAME') throw e;
             }
         }
 
