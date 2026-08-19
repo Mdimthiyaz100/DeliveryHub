@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "./components/common/Sidebar";
-import UserNavbar from "./components/common/UserNavbar";
 import UserSidebar from "./components/common/UserSidebar";
 import Login from "./pages/login";
 import UserLogin from "./pages/UserLogin";
@@ -16,11 +15,8 @@ function MainLayout({ children }) {
   const token = localStorage.getItem("token");
   const role = (localStorage.getItem("role") || "").toLowerCase();
 
-  if (!token) {
+  if (!token || role !== "admin") {
     return <Navigate to="/admin/login" replace />;
-  }
-  if (role !== "admin") {
-    return <Navigate to="/shop" replace />;
   }
 
   return (
