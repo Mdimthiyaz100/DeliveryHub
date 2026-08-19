@@ -18,7 +18,6 @@ function getOrderQuantity(order, products) {
   );
   const calculatedQuantity = Number(order.amount) / Number(product?.price);
 
-  // Supports older orders that were saved with quantity 1 and a multiplied total.
   if (Number.isInteger(calculatedQuantity) && calculatedQuantity > 1) {
     return calculatedQuantity;
   }

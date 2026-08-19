@@ -12,13 +12,8 @@ function RecentOrders() {
           const mapped = res.data.recentOrders.map(item => ({
             id: `#ORD${String(item.id).padStart(3, '0')}`,
             customer: item.customer_name || "user",
-            phone: "+91 99999 99999",
-            address: "cumbum,india",
-            zone: "south zone",
             driver: item.delivery_person_name || "—",
             status: item.delivery_status || "Pending",
-            eta: "15 mins",
-            payment: "Prepaid",
             amount: `₹${Number(item.amount || 0).toLocaleString()}`
           }));
           setOrders(mapped);

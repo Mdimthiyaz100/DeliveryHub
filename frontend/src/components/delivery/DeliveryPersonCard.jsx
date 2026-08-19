@@ -1,7 +1,7 @@
 // 👤 Card showing delivery person info
 import StatusBadge from "../common/StatusBadge";
 
-function DeliveryPersonCard({ person, onAssignOrder, onDeletePerson, onToggleStatus }) {
+function DeliveryPersonCard({ person, onAssignOrder, onToggleStatus }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow relative">
       {/* Header with avatar and status */}

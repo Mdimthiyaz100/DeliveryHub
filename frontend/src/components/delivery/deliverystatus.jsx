@@ -88,7 +88,6 @@ function DeliveryStatus() {
             key={person.id}
             person={person}
             onAssignOrder={setAssigningDriver}
-            onDeletePerson={handleDeletePerson}
             onToggleStatus={handleToggleStatus}
           />
         ))}
