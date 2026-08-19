@@ -149,6 +149,22 @@ async function seed() {
             console.log("✅ Seeded default products.");
         }
 
+        // Earlier versions stored some multi-quantity orders as quantity 1.
+        // Only repair records whose total is an exact multiple of a matching
+        // product's current price.
+        const repairResult = await query(`
+            UPDATE orders o
+            INNER JOIN products p ON LOWER(TRIM(p.name)) = LOWER(TRIM(o.item))
+            SET o.quantity = ROUND(o.amount / p.price)
+            WHERE COALESCE(o.quantity, 1) = 1
+              AND p.price > 0
+              AND o.amount > p.price
+              AND ABS(o.amount - (ROUND(o.amount / p.price) * p.price)) < 0.01
+        `);
+        if (repairResult.affectedRows > 0) {
+            console.log(`Corrected quantity for ${repairResult.affectedRows} existing order(s).`);
+        }
+
         console.log("✅ Database initialized and seeded successfully.");
     } catch (e) {
         console.error("❌ Database seeding error:", e);

@@ -6,24 +6,37 @@ function formatOrderItem(item) {
   return item.replace(/\s*\(Qty:\s*\d+\)/i, "").trim();
 }
 
-function getOrderQuantity(order) {
-  if (order.quantity && Number(order.quantity) > 0) {
-    return order.quantity;
+function getOrderQuantity(order, products) {
+  const savedQuantity = Number(order.quantity);
+  if (Number.isInteger(savedQuantity) && savedQuantity > 1) return savedQuantity;
+
+  const itemQuantity = order.item?.match(/\(Qty:\s*(\d+)\)/i);
+  if (itemQuantity) return Number(itemQuantity[1]);
+
+  const product = products.find(
+    ({ name }) => name?.trim().toLowerCase() === order.item?.trim().toLowerCase()
+  );
+  const calculatedQuantity = Number(order.amount) / Number(product?.price);
+
+  if (Number.isInteger(calculatedQuantity) && calculatedQuantity > 1) {
+    return calculatedQuantity;
   }
-  const match = order.item?.match(/\(Qty:\s*(\d+)\)/i);
-  if (match) return parseInt(match[1], 10);
-  return 1;
+
+  return Number.isInteger(savedQuantity) && savedQuantity > 0 ? savedQuantity : 1;
 }
 
 function MyOrders() {
   const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchOrders = () => {
     setLoading(true);
-    api
-      .get("/orders/my")
-      .then((res) => setOrders(res.data || []))
+    Promise.all([api.get("/orders/my"), api.get("/products")])
+      .then(([ordersResponse, productsResponse]) => {
+        setOrders(ordersResponse.data || []);
+        setProducts(productsResponse.data || []);
+      })
       .catch((err) => console.error("Error fetching orders:", err))
       .finally(() => setLoading(false));
   };
@@ -90,7 +103,7 @@ function MyOrders() {
                 <td className="px-6 py-4 text-sm text-gray-800 font-medium">{formatOrderItem(order.item)}</td>
                 <td className="px-4 py-4 text-center">
                   <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
-                    {getOrderQuantity(order)}
+                    {getOrderQuantity(order, products)}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-gray-900">

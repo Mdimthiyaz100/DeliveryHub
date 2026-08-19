@@ -6,18 +6,30 @@ function formatOrderItem(item) {
   return item.replace(/\s*\(Qty:\s*\d+\)/i, "").trim();
 }
 
-function getOrderQuantity(order) {
-  if (order.quantity && Number(order.quantity) > 0) {
-    return order.quantity;
+function getOrderQuantity(order, products) {
+  const savedQuantity = Number(order.quantity);
+  if (Number.isInteger(savedQuantity) && savedQuantity > 1) return savedQuantity;
+
+  const itemQuantity = order.item?.match(/\(Qty:\s*(\d+)\)/i);
+  if (itemQuantity) return Number(itemQuantity[1]);
+
+  const product = products.find(
+    ({ name }) => name?.trim().toLowerCase() === order.item?.trim().toLowerCase()
+  );
+  const calculatedQuantity = Number(order.amount) / Number(product?.price);
+
+  // Supports older orders that were saved with quantity 1 and a multiplied total.
+  if (Number.isInteger(calculatedQuantity) && calculatedQuantity > 1) {
+    return calculatedQuantity;
   }
-  const match = order.item?.match(/\(Qty:\s*(\d+)\)/i);
-  if (match) return parseInt(match[1], 10);
-  return 1;
+
+  return Number.isInteger(savedQuantity) && savedQuantity > 0 ? savedQuantity : 1;
 }
 
 function OrderTable({ orders: propOrders, availableDPs: propAvailableDPs, onAssign: propOnAssign, onDelete: propOnDelete, refreshTrigger }) {
   const [orders, setOrders] = useState([]);
   const [availableDPs, setAvailableDPs] = useState([]);
+  const [products, setProducts] = useState([]);
 
   const fetchOrdersAndDPs = () => {
     api.get("/orders")
@@ -36,6 +48,10 @@ function OrderTable({ orders: propOrders, availableDPs: propAvailableDPs, onAssi
       .catch(err => {
         console.error("Error fetching delivery persons:", err);
       });
+
+    api.get("/products")
+      .then(res => setProducts(res.data || []))
+      .catch(err => console.error("Error fetching products:", err));
   };
 
   useEffect(() => {
@@ -129,7 +145,7 @@ function OrderTable({ orders: propOrders, availableDPs: propAvailableDPs, onAssi
               <td className="px-6 py-4 text-sm text-gray-600">{formatOrderItem(order.item)}</td>
               <td className="px-4 py-4 text-center">
                 <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
-                  {getOrderQuantity(order)}
+                  {getOrderQuantity(order, products)}
                 </span>
               </td>
               <td className="px-6 py-4">
