@@ -31,7 +31,7 @@ async function getMyOrders(req, res) {
 
 async function createOrder(req, res) {
     try {
-        const { item, amount, name, phone, address, paymentMethod } = req.body;
+        const { item, amount, name, phone, address, paymentMethod, quantity } = req.body;
         if (!item?.trim() || amount === undefined || amount === '' || Number(amount) < 0) {
             return res.status(400).json({ message: 'Item and a valid amount are required' });
         }
@@ -44,7 +44,16 @@ async function createOrder(req, res) {
         if (!user) {
             return res.status(401).json({ message: 'Your account no longer exists. Please log out and register or log in again.' });
         }
-        const id = await Order.createOrder(req.user.userId, item.trim(), amount, name?.trim(), phone?.trim(), address?.trim(), paymentMethod?.trim());
+        const id = await Order.createOrder(
+            req.user.userId,
+            item.trim(),
+            amount,
+            name?.trim(),
+            phone?.trim(),
+            address?.trim(),
+            paymentMethod?.trim(),
+            quantity ? Number(quantity) : 1
+        );
         res.status(201).json({ id, message: 'Order created' });
     } catch (err) {
         res.status(500).json({ error: err.message });

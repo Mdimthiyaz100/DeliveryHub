@@ -9,11 +9,12 @@ import Orders from "./pages/Orders";
 import DeliveryStatusPage from "./pages/Deliverystatus";
 import Shop from "./pages/Shop";
 import MyOrders from "./pages/MyOrders";
+import Users from "./pages/Users";
 
 /* ── Admin Layout (Sidebar) ── */
 function MainLayout({ children }) {
   const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const role = (localStorage.getItem("role") || "").toLowerCase();
 
   if (!token) {
     return <Navigate to="/admin/login" replace />;
@@ -57,14 +58,15 @@ function App() {
         <Route path="/" element={<UserLogin />} />
         <Route path="/admin/login" element={<Login />} />
 
-        {/* ── User Pages (UserSidebar + UserNavbar) ── */}
+        {/* ── User Pages (UserSidebar) ── */}
         <Route path="/shop" element={<UserLayout><Shop /></UserLayout>} />
         <Route path="/my-orders" element={<UserLayout><MyOrders /></UserLayout>} />
 
-        {/* ── Admin Pages (Sidebar + Navbar) ── */}
+        {/* ── Admin Pages (Sidebar) ── */}
         <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
         <Route path="/orders" element={<MainLayout><Orders /></MainLayout>} />
         <Route path="/delivery" element={<MainLayout><DeliveryStatusPage /></MainLayout>} />
+        <Route path="/users" element={<MainLayout><Users /></MainLayout>} />
         
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

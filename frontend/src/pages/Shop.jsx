@@ -75,8 +75,9 @@ function Shop() {
     try {
       const orderRequests = cart.map((item) =>
         api.post("/orders", {
-          item: item.qty > 1 ? `${item.name} (Qty: ${item.qty})` : item.name,
-          amount: Number(item.price) * item.qty,
+          item: item.name,
+          quantity: item.qty || 1,
+          amount: Number(item.price) * (item.qty || 1),
           name: name.trim(),
           phone: phone.trim(),
           address: address.trim(),

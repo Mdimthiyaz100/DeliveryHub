@@ -36,6 +36,7 @@ async function seed() {
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 item VARCHAR(255) NOT NULL,
+                quantity INT DEFAULT 1,
                 amount DECIMAL(10, 2) NOT NULL,
                 recipient_name VARCHAR(255),
                 customer_phone VARCHAR(30),
@@ -49,6 +50,7 @@ async function seed() {
 
         // === 4. Ensure extra order columns exist if table was created previously ===
         const orderColumns = [
+            ['quantity', 'INT DEFAULT 1'],
             ['recipient_name', 'VARCHAR(255)'],
             ['customer_phone', 'VARCHAR(30)'],
             ['delivery_address', 'TEXT'],

@@ -34,6 +34,11 @@ function Sidebar() {
       label: "Delivery",
       icon: "🚚",
     },
+    {
+      path: "/users",
+      label: "Users",
+      icon: "👥",
+    },
   ];
 
   const handleLogout = () => {

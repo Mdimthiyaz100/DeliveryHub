@@ -18,11 +18,18 @@ api.interceptors.response.use(
     (error) => {
         if (error.response && (error.response.status === 401 || error.response.status === 403)) {
             // Token is invalid or expired
+            const role = (localStorage.getItem('role') || '').toLowerCase();
             if (localStorage.getItem('token')) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('role');
                 localStorage.removeItem('userName');
-                window.location.href = '/';
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('user');
+                if (role === 'admin') {
+                    window.location.href = '/admin/login';
+                } else {
+                    window.location.href = '/';
+                }
             }
         }
         return Promise.reject(error);

@@ -1,6 +1,20 @@
 import { useState, useEffect } from "react";
 import api from "../../api/api";
 
+function formatOrderItem(item) {
+  if (!item) return "";
+  return item.replace(/\s*\(Qty:\s*\d+\)/i, "").trim();
+}
+
+function getOrderQuantity(order) {
+  if (order.quantity && Number(order.quantity) > 0) {
+    return order.quantity;
+  }
+  const match = order.item?.match(/\(Qty:\s*(\d+)\)/i);
+  if (match) return parseInt(match[1], 10);
+  return 1;
+}
+
 function MyOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +76,7 @@ function MyOrders() {
             <tr>
               <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Order ID</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Item</th>
+              <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">Qty</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Amount</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
               <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Delivery Person</th>
@@ -72,7 +87,12 @@ function MyOrders() {
             {orders.map((order) => (
               <tr key={order.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm font-medium text-blue-600">{order.id}</td>
-                <td className="px-6 py-4 text-sm text-gray-800">{order.item}</td>
+                <td className="px-6 py-4 text-sm text-gray-800 font-medium">{formatOrderItem(order.item)}</td>
+                <td className="px-4 py-4 text-center">
+                  <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                    {getOrderQuantity(order)}
+                  </span>
+                </td>
                 <td className="px-6 py-4 text-sm font-medium text-gray-900">
                   Rs.{Number(order.amount || 0).toLocaleString()}
                 </td>

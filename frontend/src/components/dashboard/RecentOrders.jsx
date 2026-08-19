@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../../../api/api";
 import StatusBadge from "../common/StatusBadge";
 
 function RecentOrders() {
   const [orders, setOrders] = useState([]);
 
-  useEffect(() => {api.get("/dashboard/stats").then(res => {
+  useEffect(() => {
+    api.get("/dashboard/stats").then(res => {
         if (res.data && res.data.recentOrders) {
           const mapped = res.data.recentOrders.map(item => ({
             id: `#ORD${String(item.id).padStart(3, '0')}`,
@@ -31,7 +33,9 @@ function RecentOrders() {
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
         <h3 className="font-semibold text-gray-800">Recent Orders</h3>
-        <button className="text-blue-600 text-sm hover:underline">View All</button>
+        <Link to="/orders" className="text-blue-600 text-sm font-medium hover:underline flex items-center gap-1">
+          View All →
+        </Link>
       </div>
       
       <table className="w-full table-fixed">

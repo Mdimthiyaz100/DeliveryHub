@@ -1,7 +1,14 @@
 const { query } = require('../database/db');
 
 async function getAllUsers() {
-    return await query('SELECT id, name, email, role, created_at FROM users');
+    const sql = `
+        SELECT u.id, u.name, u.email, u.role, u.created_at, COUNT(o.id) as total_orders
+        FROM users u
+        LEFT JOIN orders o ON u.id = o.user_id
+        GROUP BY u.id, u.name, u.email, u.role, u.created_at
+        ORDER BY u.id ASC
+    `;
+    return await query(sql);
 }
 
 async function getUserById(id) {
