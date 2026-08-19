@@ -17,13 +17,13 @@ useEffect(() => {
       .then(res => {
         if (res.data && res.data.ordersPerDay) {
           const daysMap = {
-            "Mon": { delivered: 9, pending: 1 },
-            "Tue": { delivered: 27, pending: 4 },
-            "Wed": { delivered: 16, pending: 0 },
-            "Thu": { delivered: 8, pending: 3 },
-            "Fri": { delivered: 23, pending: 12 },
-            "Sat": { delivered: 12, pending: 7 },
-            "Sun": { delivered: 0, pending: 0 }
+            "Mon": { delivered: 120, pending: 12 },
+            "Tue": { delivered: 201, pending: 41 },
+            "Wed": { delivered: 161, pending: 45 },
+            "Thu": { delivered: 98, pending: 16 },
+            "Fri": { delivered: 152, pending: 32 },
+            "Sat": { delivered: 120, pending: 27 },
+            "Sun": { delivered: 188, pending: 30 }
           };
 
           res.data.ordersPerDay.forEach(item => {
