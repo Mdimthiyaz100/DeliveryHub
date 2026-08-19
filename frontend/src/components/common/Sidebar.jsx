@@ -41,7 +41,7 @@ function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-black h-screen shadow-md fixed left-0 top-0 flex flex-col z-30">
+    <aside className="w-64 bg-blue h-screen shadow-md fixed left-0 top-0 flex flex-col z-30">
       {/* Logo */}
       <div className="flex justify-center py-6">
         <img
