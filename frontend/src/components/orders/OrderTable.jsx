@@ -192,7 +192,7 @@ function OrderTable({ orders: propOrders, availableDPs: propAvailableDPs, onAssi
         </tbody>
       </table>
       {displayOrders.length === 0 && (
-        <div className="text-center py-8 text-gray-500">No orders found in the database.</div>
+        <div className="text-center py-8 text-gray-500">No orders were ordered.</div>
       )}
     </div>
   );
