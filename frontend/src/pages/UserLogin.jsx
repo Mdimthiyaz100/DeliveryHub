@@ -48,6 +48,7 @@ function UserLogin() {
             localStorage.setItem("token", res.data.token);
             localStorage.setItem("role", res.data.user?.role || "user");
             localStorage.setItem("userName", res.data.user?.name || "User");
+            localStorage.setItem("userEmail", res.data.user?.email || formData.email || "");
             navigate("/shop");
           } else {
             setError("Failed to get token from server");

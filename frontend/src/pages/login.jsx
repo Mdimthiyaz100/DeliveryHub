@@ -53,7 +53,8 @@ function Login() {
           }
           localStorage.setItem("token", res.data.token);
           localStorage.setItem("role", role);
-          localStorage.setItem("userName", res.data.user?.name || "Admin");
+          localStorage.setItem("userName", res.data.user?.name || "Administrator");
+          localStorage.setItem("userEmail", res.data.user?.email || formData.email || "Admin");
           navigate("/dashboard");
         } else {
           setError("Failed to get token from server");

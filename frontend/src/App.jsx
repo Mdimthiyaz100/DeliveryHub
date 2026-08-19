@@ -10,7 +10,7 @@ import DeliveryStatusPage from "./pages/Deliverystatus";
 import Shop from "./pages/Shop";
 import MyOrders from "./pages/MyOrders";
 
-/* ── Admin Layout (Sidebar + Navbar) ── */
+/* ── Admin Layout (Sidebar) ── */
 function MainLayout({ children }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -26,13 +26,13 @@ function MainLayout({ children }) {
     <div className="min-h-screen bg-gray-50">
       <Sidebar />
       <div className="ml-64">
-        <main className="p-6 pt-24">{children}</main>
+        <main className="p-8">{children}</main>
       </div>
     </div>
   );
 }
 
-/* ── User Layout (UserSidebar + UserNavbar — same style as admin) ── */
+/* ── User Layout (UserSidebar) ── */
 function UserLayout({ children }) {
   const token = localStorage.getItem("token");
 
@@ -44,8 +44,7 @@ function UserLayout({ children }) {
     <div className="min-h-screen bg-gray-50">
       <UserSidebar />
       <div className="ml-64">
-        <UserNavbar />
-        <main className="p-6 pt-24">{children}</main>
+        <main className="p-8">{children}</main>
       </div>
     </div>
   );

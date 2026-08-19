@@ -14,7 +14,12 @@ function Shop() {
   const [orderIds, setOrderIds] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [checkoutDetails, setCheckoutDetails] = useState({ name: "", phone: "", address: "", paymentMethod: "Cash on Delivery" });
+  const [checkoutDetails, setCheckoutDetails] = useState({
+    name: localStorage.getItem("userName") || "",
+    phone: "",
+    address: "",
+    paymentMethod: "Cash on Delivery",
+  });
   const [checkoutError, setCheckoutError] = useState("");
 
   useEffect(() => {
@@ -51,6 +56,10 @@ function Shop() {
 
   const openCheckout = () => {
     setCheckoutError("");
+    setCheckoutDetails((prev) => ({
+      ...prev,
+      name: prev.name || localStorage.getItem("userName") || "",
+    }));
     setShowCheckout(true);
   };
 
@@ -64,10 +73,15 @@ function Shop() {
     }
     setOrdering(true);
     try {
-      const orderRequests = cart.flatMap((item) =>
-        Array.from({ length: item.qty }, () =>
-          api.post("/orders", { item: item.name, amount: Number(item.price), name: name.trim(), phone: phone.trim(), address: address.trim(), paymentMethod })
-        )
+      const orderRequests = cart.map((item) =>
+        api.post("/orders", {
+          item: item.qty > 1 ? `${item.name} (Qty: ${item.qty})` : item.name,
+          amount: Number(item.price) * item.qty,
+          name: name.trim(),
+          phone: phone.trim(),
+          address: address.trim(),
+          paymentMethod,
+        })
       );
       const responses = await Promise.all(orderRequests);
       setOrderIds(responses.map((res) => res.data.id));

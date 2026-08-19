@@ -42,22 +42,17 @@ function Orders() {
           <h2 className="text-2xl font-bold text-gray-800">Orders</h2>
           <p className="text-gray-500 mt-1">Manage and track all customer orders</p>
         </div>
-        
       </div>
 
-      <OrderTable refreshTrigger={refreshTrigger} />
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-lg mb-4">
-                ⚠️ {error}
-              </div>
-            )}
-
-           
-              </div>
-           
-         
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-lg mb-4">
+          ⚠️ {error}
+        </div>
       )}
-  
 
+      <OrderTable refreshTrigger={refreshTrigger} />
+    </div>
+  );
+}
 
 export default Orders;
