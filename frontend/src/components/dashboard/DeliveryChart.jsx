@@ -19,7 +19,7 @@ useEffect(() => {
           const daysMap = {
             "Mon": { delivered: 120, pending: 12 },
             "Tue": { delivered: 201, pending: 41 },
-            "Wed": { delivered: 161, pending: 45 },
+            "Wed": { delivered: 0, pending: 0 },
             "Thu": { delivered: 98, pending: 16 },
             "Fri": { delivered: 152, pending: 32 },
             "Sat": { delivered: 120, pending: 27 },
