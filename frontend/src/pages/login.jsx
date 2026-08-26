@@ -135,7 +135,7 @@ function Login() {
                 <input
                   type="text"
                   name="fullName"
-                  placeholder="John Doe"
+                  placeholder="Your Name"
                   value={formData.fullName}
                   onChange={handleChange}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -146,7 +146,7 @@ function Login() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
               <input
-                type="email" name="email" placeholder="admin@deliveryhub.com" value={formData.email} onChange={handleChange}
+                type="email" name="email" placeholder="YOUR MAIL ID" value={formData.email} onChange={handleChange}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
