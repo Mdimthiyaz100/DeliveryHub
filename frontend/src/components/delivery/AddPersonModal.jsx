@@ -1,15 +1,14 @@
 import { useState } from "react";
 import api from "../../../api/api";
 
-function AddPersonModal({ onClose, onSuccess, person }) {
+function AddPersonModal({ onClose, onSuccess }) {
   const [formData, setFormData] = useState({
-    name: person?.name || "",
-    phone: person?.phone || "",
-    email: person?.email || "",
-    vehicleType: person?.vehicle_type || "Bike",
-    vehicleNumber: person?.vehicle_number || ""
+    name: "",
+    phone: "",
+    email: "",
+    vehicleType: "",
+    vehicleNumber: ""
   });
-  const [licenseFile, setLicenseFile] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -19,32 +18,22 @@ function AddPersonModal({ onClose, onSuccess, person }) {
       setError("Name and phone number are required.");
       return;
     }
-    if (!person && !licenseFile) {
-      setError("Please choose a driving license PDF or JPEG.");
-      return;
-    }
     setLoading(true);
     setError("");
 
-    const data = new FormData();
-    data.append("name", formData.name.trim());
-    data.append("phone", formData.phone.trim());
-    data.append("email", formData.email.trim());
-    data.append("vehicleType", formData.vehicleType);
-    data.append("vehicleNumber", formData.vehicleNumber.trim());
-    if (licenseFile) data.append("drivingLicense", licenseFile);
-
-    const request = person
-      ? api.put(`/delivery/${person.id}`, data, { headers: { "Content-Type": "multipart/form-data" } })
-      : api.post("/delivery", data, { headers: { "Content-Type": "multipart/form-data" } });
-
-    request
+    api.post("/delivery", {
+      name: formData.name.trim(),
+      phone: formData.phone.trim(),
+      email: formData.email.trim() || null,
+      vehicleType: formData.vehicleType,
+      vehicleNumber: formData.vehicleNumber.trim()
+    })
       .then(() => {
         onSuccess();
         onClose();
       })
       .catch(err => {
-        setError(err.response?.data?.message || err.response?.data?.error || "Failed to add delivery person");
+        setError(err.response?.data?.message || "Failed to add delivery person");
       })
       .finally(() => setLoading(false));
   };
@@ -53,7 +42,7 @@ function AddPersonModal({ onClose, onSuccess, person }) {
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative">
         <div className="flex justify-between items-center mb-5">
-          <h3 className="text-xl font-bold text-gray-800">{person ? "Edit Delivery Person" : "Add Delivery Person"}</h3>
+          <h3 className="text-xl font-bold text-gray-800">Add Delivery Person</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold p-1">✕</button>
         </div>
 
@@ -107,23 +96,10 @@ function AddPersonModal({ onClose, onSuccess, person }) {
               />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Driving License {person ? "(replace optional)" : ""}
-            </label>
-            <input
-              type="file"
-              accept="application/pdf,image/jpeg,.pdf,.jpg,.jpeg"
-              onChange={(e) => setLicenseFile(e.target.files?.[0] || null)}
-              className="w-full px-3 py-2 border rounded-lg text-sm file:mr-3 file:border-0 file:bg-blue-50 file:px-3 file:py-1 file:text-blue-700 file:rounded-md"
-              required={!person}
-            />
-            <p className="text-xs text-gray-500 mt-1">PDF or JPEG, up to 5 MB.</p>
-          </div>
           <div className="flex justify-end gap-3 pt-4 border-t">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
             <button type="submit" disabled={loading} className="px-5 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50">
-              {loading ? "Saving..." : (person ? "Save Changes" : "Add Person")}
+              {loading ? "Adding..." : "Add Person"}
             </button>
           </div>
         </form>

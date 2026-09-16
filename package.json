@@ -4,12 +4,5 @@
   "scripts": {
     "build": "npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend",
     "start": "npm start --prefix backend"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.63.0",
-    "@types/node": "^22.20.2"
-  },
-  "dependencies": {
-    "dotenv": "^17.4.2"
   }
 }
