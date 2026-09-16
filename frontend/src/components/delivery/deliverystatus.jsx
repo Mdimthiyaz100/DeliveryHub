@@ -8,6 +8,7 @@ function DeliveryStatus() {
   const [deliveryPersons, setDeliveryPersons] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [assigningDriver, setAssigningDriver] = useState(null);
+  const [editingPerson, setEditingPerson] = useState(null);
 
   const fetchDeliveryPersons = () => {
     api.get("/delivery")
@@ -20,6 +21,7 @@ function DeliveryStatus() {
             email: p.email,
             vehicle_type: p.vehicle_type,
             vehicle_number: p.vehicle_number,
+            hasLicense: Boolean(p.has_license),
             status: p.status === "available" ? "Available" : (p.status === "busy" ? "On Delivery" : "Offline"),
             deliveries: Number(p.total_deliveries || 0),
             rating: "4.8"
@@ -43,6 +45,22 @@ function DeliveryStatus() {
     api.patch(`/delivery/${id}/status`, { status: newStatus })
       .then(fetchDeliveryPersons)
       .catch(err => alert("Failed to change status: " + (err.response?.data?.message || err.message)));
+  };
+
+  const handleDownloadLicense = async (person) => {
+    try {
+      const response = await api.get(`/delivery/${person.id}/license`, { responseType: "blob" });
+      const url = window.URL.createObjectURL(response.data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${person.name}-driving-license`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to download driving license.");
+    }
   };
 
   const availableCount = deliveryPersons.filter(p => p.status === "Available").length;
@@ -89,12 +107,15 @@ function DeliveryStatus() {
             person={person}
             onAssignOrder={setAssigningDriver}
             onToggleStatus={handleToggleStatus}
+            onEdit={setEditingPerson}
+            onDownloadLicense={handleDownloadLicense}
           />
         ))}
       </div>
 
       {/* Modals */}
       {showAddModal && <AddPersonModal onClose={() => setShowAddModal(false)} onSuccess={fetchDeliveryPersons} />}
+      {editingPerson && <AddPersonModal person={editingPerson} onClose={() => setEditingPerson(null)} onSuccess={fetchDeliveryPersons} />}
       {assigningDriver && <AssignOrderModal driver={assigningDriver} onClose={() => setAssigningDriver(null)} onSuccess={fetchDeliveryPersons} />}
     </div>
   );

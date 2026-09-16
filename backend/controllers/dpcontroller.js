@@ -31,7 +31,8 @@ async function getDeliveryPerson(req, res) {
 async function addDeliveryPerson(req, res) {
     try {
         const { name, phone, email, vehicleType, vehicleNumber } = req.body;
-        const id = await DP.createDP(name, phone, email, vehicleType, vehicleNumber);
+        if (!req.file) return res.status(400).json({ message: 'A driving license PDF or JPEG is required.' });
+        const id = await DP.createDP(name, phone, email, vehicleType, vehicleNumber, req.file);
         res.status(201).json({ id, message: 'Delivery person added' });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -41,8 +42,20 @@ async function addDeliveryPerson(req, res) {
 async function editDeliveryPerson(req, res) {
     try {
         const { name, phone, email, vehicleType, vehicleNumber } = req.body;
-        await DP.updateDP(req.params.id, name, phone, email, vehicleType, vehicleNumber);
+        await DP.updateDP(req.params.id, name, phone, email, vehicleType, vehicleNumber, req.file);
         res.json({ message: 'Updated' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}
+
+async function downloadLicense(req, res) {
+    try {
+        const license = await DP.getLicenseById(req.params.id);
+        if (!license?.license_data) return res.status(404).json({ message: 'Driving license not found' });
+        res.type(license.license_mime_type || 'application/octet-stream');
+        res.attachment(license.license_original_name || 'driving-license');
+        res.send(license.license_data);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -98,7 +111,7 @@ async function updateOrderDeliveryStatus(req, res) {
 
 module.exports = {
     getAllDeliveryPersons,getAvailable,getDeliveryPerson,
-    addDeliveryPerson,editDeliveryPerson,changeStatus,
+    addDeliveryPerson,editDeliveryPerson,downloadLicense,changeStatus,
     removeDeliveryPerson,getDPOrderHistory,assignDelivery,
     updateOrderDeliveryStatus
 };

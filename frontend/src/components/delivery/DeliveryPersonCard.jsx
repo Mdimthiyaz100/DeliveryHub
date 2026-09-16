@@ -1,7 +1,7 @@
 // 👤 Card showing delivery person info
 import StatusBadge from "../common/StatusBadge";
 
-function DeliveryPersonCard({ person, onAssignOrder, onToggleStatus }) {
+function DeliveryPersonCard({ person, onAssignOrder, onToggleStatus, onEdit, onDownloadLicense }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow relative">
       {/* Header with avatar and status */}
@@ -38,7 +38,7 @@ function DeliveryPersonCard({ person, onAssignOrder, onToggleStatus }) {
           <p className="text-lg font-bold text-gray-800">{person.deliveries || 0}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500 uppercase">Rating</p>
+          <p className="text-xs text-gray-500 uppercase"> </p>
           <p className="text-lg font-bold text-yellow-500">⭐ {person.rating}</p>
         </div>
       </div>
@@ -50,6 +50,21 @@ function DeliveryPersonCard({ person, onAssignOrder, onToggleStatus }) {
           className="flex-1 py-2 text-sm font-medium bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
         >
           Assign Order
+        </button>
+        {person.hasLicense && (
+          <button
+            onClick={() => onDownloadLicense(person)}
+            className="py-2 px-3 text-sm font-medium bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+            title="Download driving license"
+          >
+            License
+          </button>
+        )}
+        <button
+          onClick={() => onEdit(person)}
+          className="py-2 px-3 text-sm font-medium bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          Edit
         </button>
       </div>
     </div>

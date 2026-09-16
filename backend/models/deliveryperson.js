@@ -2,7 +2,8 @@ const { query } = require('../database/db');
 
 async function getAllDPs() {
     const sql = `
-        SELECT dp.*, 
+        SELECT dp.id, dp.name, dp.phone, dp.email, dp.vehicle_type, dp.vehicle_number, dp.status, dp.created_at,
+            IF(dp.license_data IS NULL, 0, 1) AS has_license,
             COUNT(CASE WHEN o.delivery_status IN ('assigned', 'pending') THEN 1 END) as active_orders_count,
             COUNT(CASE WHEN o.delivery_status = 'delivered' THEN 1 END) as total_deliveries
         FROM delivery_persons dp
@@ -31,23 +32,37 @@ async function getDPById(id) {
     return rows[0];
 }
 
-async function createDP(name, phone, email, vehicleType, vehicleNumber) {
+async function createDP(name, phone, email, vehicleType, vehicleNumber, licenseFile) {
     const result = await query(
-        `INSERT INTO delivery_persons (name, phone, email, vehicle_type, vehicle_number, status) 
-         VALUES (?, ?, ?, ?, ?, 'available')`,
-        [name, phone, email, vehicleType, vehicleNumber]
+        `INSERT INTO delivery_persons (name, phone, email, vehicle_type, vehicle_number, license_data, license_original_name, license_mime_type, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'available')`,
+        [name, phone, email, vehicleType, vehicleNumber, licenseFile.buffer, licenseFile.originalname, licenseFile.mimetype]
     );
     return result.insertId;
 }
 
-async function updateDP(id, name, phone, email, vehicleType, vehicleNumber) {
+async function updateDP(id, name, phone, email, vehicleType, vehicleNumber, licenseFile) {
+    const licenseFields = licenseFile
+        ? ', license_data = ?, license_original_name = ?, license_mime_type = ?'
+        : '';
+    const params = [name, phone, email, vehicleType, vehicleNumber];
+    if (licenseFile) params.push(licenseFile.buffer, licenseFile.originalname, licenseFile.mimetype);
+    params.push(id);
     await query(
         `UPDATE delivery_persons 
-         SET name = ?, phone = ?, email = ?, vehicle_type = ?, vehicle_number = ? 
+         SET name = ?, phone = ?, email = ?, vehicle_type = ?, vehicle_number = ?${licenseFields}
          WHERE id = ?`,
-        [name, phone, email, vehicleType, vehicleNumber, id]
+        params
     );
     return true;
+}
+
+async function getLicenseById(id) {
+    const rows = await query(
+        'SELECT license_data, license_original_name, license_mime_type FROM delivery_persons WHERE id = ?',
+        [id]
+    );
+    return rows[0];
 }
 
 async function updateDPStatus(id, status) {
@@ -96,7 +111,7 @@ async function updateDeliveryStatus(orderId, status) {
 }
 
 module.exports = {
-    getAllDPs, getAvailableDPs, getDPById, createDP, updateDP, 
+    getAllDPs, getAvailableDPs, getDPById, createDP, updateDP, getLicenseById,
     updateDPStatus, deleteDP, getDPOrders, assignOrderToDP,
     updateDeliveryStatus
 };
