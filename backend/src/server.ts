@@ -38,6 +38,13 @@ app.use(cors({
 
 app.use(express.json());
 
+// Security headers with GIS popup and FedCM compatibility
+app.use((_req: Request, res: Response, next) => {
+    // Allows Google One Tap / popup window.postMessage communication
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    next();
+});
+
 // Health check
 app.get('/', (_req: Request, res: Response) => {
     res.json({ 

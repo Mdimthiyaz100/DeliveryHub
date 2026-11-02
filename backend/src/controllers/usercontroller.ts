@@ -8,6 +8,12 @@ import { JWT_SECRET, AuthenticatedRequest } from '../middleware/auth';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
+function isDatabaseError(err: any): boolean {
+    if (!err) return false;
+    const dbCodes = ['ER_ACCESS_DENIED_ERROR', 'ECONNREFUSED', 'ETIMEDOUT', 'PROTOCOL_CONNECTION_LOST', 'ENOTFOUND'];
+    return dbCodes.includes(err.code) || /Access denied|connect ECONNREFUSED|getaddrinfo ENOTFOUND/i.test(err.message || '');
+}
+
 /**
  * Public User Registration
  * CRITICAL SECURITY RULE: Public registration CANNOT assign admin or super_admin roles.
@@ -47,7 +53,11 @@ export async function register(req: Request, res: Response) {
 
         res.status(201).json({ id: newId, message: 'User registered successfully', role: assignedRole });
     } catch (err: any) {
-        res.status(500).json({ error: err.message });
+        console.error('Registration Error:', err.message);
+        if (isDatabaseError(err)) {
+            return res.status(503).json({ message: 'Database service is currently unavailable. Please try again shortly.' });
+        }
+        res.status(500).json({ message: 'Internal server error' });
     }
 }
 
@@ -64,7 +74,7 @@ export async function login(req: Request, res: Response) {
         const normalizedEmail = email.toLowerCase().trim();
         const user = await User.getUserByEmail(normalizedEmail);
         if (!user) {
-            return res.status(400).json({ message: 'Invalid credentials. User not found.' });
+            return res.status(401).json({ message: 'Invalid email or password.' });
         }
 
         if (user.status === 'inactive') {
@@ -73,7 +83,7 @@ export async function login(req: Request, res: Response) {
 
         const isMatch = await User.checkPassword(password, user.password || '');
         if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid email or password.' });
+            return res.status(401).json({ message: 'Invalid email or password.' });
         }
 
         // Check pending admin invitation promotion
@@ -112,7 +122,11 @@ export async function login(req: Request, res: Response) {
             }
         });
     } catch (err: any) {
-        res.status(500).json({ error: err.message });
+        console.error('Login Error:', err.message);
+        if (isDatabaseError(err)) {
+            return res.status(503).json({ message: 'Database service is currently unavailable. Please try again shortly.' });
+        }
+        res.status(500).json({ message: 'Internal server error' });
     }
 }
 
@@ -127,6 +141,8 @@ export async function googleAuth(req: Request, res: Response) {
             return res.status(400).json({ message: 'Google credential (idToken) is required' });
         }
 
+        console.log(`[Google Auth] Request received for portal: ${portal || 'user'}`);
+
         let googlePayload: any = null;
 
         // Verify ID Token with Google Auth Library
@@ -138,16 +154,19 @@ export async function googleAuth(req: Request, res: Response) {
                     audience: audiences,
                 });
                 googlePayload = ticket.getPayload();
+                console.log('[Google Auth] Token verified via Google Auth Library');
             } else {
                 const decoded = jwt.decode(idToken) as any;
                 if (decoded && decoded.email && (decoded.iss?.includes('accounts.google.com') || decoded.exp)) {
                     googlePayload = decoded;
+                    console.log('[Google Auth] Token verified via fallback decoder');
                 } else {
+                    console.warn('[Google Auth] Invalid Google token structure');
                     return res.status(401).json({ message: 'Invalid Google token signature' });
                 }
             }
         } catch (verifyErr: any) {
-            console.warn('Google verifyIdToken issue:', verifyErr.message);
+            console.warn('[Google Auth] Google verifyIdToken issue:', verifyErr.message);
             const decoded = jwt.decode(idToken) as any;
             if (decoded && decoded.email && (decoded.iss?.includes('accounts.google.com') || decoded.sub)) {
                 if (decoded.exp && Date.now() >= decoded.exp * 1000) {
@@ -169,6 +188,8 @@ export async function googleAuth(req: Request, res: Response) {
         const picture = googlePayload.picture || null;
         const emailVerified = googlePayload.email_verified === true || googlePayload.email_verified === 'true' || true;
 
+        console.log(`[Google Auth] Looking up user record for normalized email domain: @${email.split('@')[1] || ''}`);
+
         // Check if user already exists by email or google_id
         let user = await User.getUserByEmail(email);
         if (!user && googleId) {
@@ -180,6 +201,7 @@ export async function googleAuth(req: Request, res: Response) {
         const hasPendingAdminInvite = invite && invite.status === 'pending';
 
         if (user) {
+            console.log(`[Google Auth] Existing user found. Role: ${user.role || 'user'}`);
             if (user.status === 'inactive') {
                 return res.status(403).json({ message: 'Your account has been deactivated. Please contact support.' });
             }
@@ -191,8 +213,10 @@ export async function googleAuth(req: Request, res: Response) {
                 await User.updateUserRole(user.id, 'admin');
                 await Invitation.acceptInvitation(email);
                 user.role = 'admin';
+                console.log('[Google Auth] User promoted to admin via verified invitation');
             }
         } else {
+            console.log('[Google Auth] No existing user found. Creating new customer account');
             const initialRole = hasPendingAdminInvite ? 'admin' : 'user';
 
             const newUserId = await User.createUser(
@@ -218,10 +242,12 @@ export async function googleAuth(req: Request, res: Response) {
                 picture,
                 status: 'active'
             };
+            console.log('[Google Auth] New account registered successfully');
         }
 
         // If trying to access admin portal, verify user actually has admin or super_admin rights
         if (portal === 'admin' && user.role !== 'admin' && user.role !== 'super_admin') {
+            console.warn('[Google Auth] Access denied: non-admin account attempted admin portal signin');
             return res.status(403).json({ message: 'You are not authorized to access the admin portal.' });
         }
 
@@ -233,6 +259,8 @@ export async function googleAuth(req: Request, res: Response) {
             JWT_SECRET,
             { expiresIn: '24h' }
         );
+
+        console.log('[Google Auth] Authentication successful. Token generated.');
 
         res.json({
             message: 'Google authentication successful',
@@ -246,8 +274,11 @@ export async function googleAuth(req: Request, res: Response) {
             }
         });
     } catch (err: any) {
-        console.error('Google Auth Error:', err);
-        res.status(500).json({ error: err.message || 'Internal authentication error' });
+        console.error('[Google Auth] Error during authentication:', err.message);
+        if (isDatabaseError(err)) {
+            return res.status(503).json({ message: 'Database service is currently unavailable. Please try again shortly.' });
+        }
+        res.status(500).json({ message: 'Internal authentication error' });
     }
 }
 

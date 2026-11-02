@@ -5,6 +5,7 @@ import api from "../../api/api";
 declare global {
   interface Window {
     google?: any;
+    __googleGisInitialized?: boolean;
   }
 }
 
@@ -66,12 +67,17 @@ function UserLogin() {
     const renderGoogleButton = () => {
       if (window.google?.accounts?.id && googleBtnRef.current) {
         try {
-          window.google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
-            callback: handleCredentialResponse,
-            auto_select: false,
-            cancel_on_tap_outside: true,
-          });
+          if (!window.__googleGisInitialized) {
+            window.google.accounts.id.initialize({
+              client_id: GOOGLE_CLIENT_ID,
+              callback: handleCredentialResponse,
+              auto_select: false,
+              cancel_on_tap_outside: true,
+              itp_support: true,
+              use_fedcm_for_prompt: false,
+            });
+            window.__googleGisInitialized = true;
+          }
 
           googleBtnRef.current.innerHTML = "";
           window.google.accounts.id.renderButton(googleBtnRef.current, {
@@ -88,17 +94,16 @@ function UserLogin() {
       }
     };
 
-    // Load GIS SDK once
-    if (!document.getElementById("google-client-script")) {
-      const script = document.createElement("script");
-      script.id = "google-client-script";
-      script.src = "https://accounts.google.com/gsi/client";
-      script.async = true;
-      script.defer = true;
-      script.onload = renderGoogleButton;
-      document.body.appendChild(script);
-    } else {
+    if (window.google?.accounts?.id) {
       renderGoogleButton();
+    } else {
+      const checkGisInterval = setInterval(() => {
+        if (window.google?.accounts?.id) {
+          clearInterval(checkGisInterval);
+          renderGoogleButton();
+        }
+      }, 150);
+      return () => clearInterval(checkGisInterval);
     }
   }, [isLogin]);
 

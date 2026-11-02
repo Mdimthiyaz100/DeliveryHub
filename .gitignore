@@ -27,3 +27,9 @@ Thumbs.db
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
