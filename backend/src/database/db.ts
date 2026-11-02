@@ -1,4 +1,6 @@
 import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config();
 import mysql from 'mysql2/promise';
 

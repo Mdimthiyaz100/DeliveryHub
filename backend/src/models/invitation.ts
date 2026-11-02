@@ -51,12 +51,26 @@ export async function getAdminOverview() {
     const [superAdminCountRows] = await query<any[]>("SELECT COUNT(*) as count FROM users WHERE role = 'super_admin'");
     const [pendingInvitesRows] = await query<any[]>("SELECT COUNT(*) as count FROM admin_invitations WHERE status = 'pending'");
     
-    const admins = await query<any[]>(`
-        SELECT id, name, email, role, google_id, picture, status, created_at, last_login 
-        FROM users 
-        WHERE role IN ('admin', 'super_admin')
-        ORDER BY FIELD(role, 'super_admin', 'admin'), created_at DESC
-    `);
+    let admins: any[] = [];
+    try {
+        admins = await query<any[]>(`
+            SELECT id, name, email, role, google_id, picture, status, created_at, last_login 
+            FROM users 
+            WHERE role IN ('admin', 'super_admin')
+            ORDER BY FIELD(role, 'super_admin', 'admin'), created_at DESC
+        `);
+    } catch (err: any) {
+        if (err.code === 'ER_BAD_FIELD_ERROR' || (err.message && err.message.includes('Unknown column'))) {
+            admins = await query<any[]>(`
+                SELECT id, name, email, role, created_at 
+                FROM users 
+                WHERE role IN ('admin', 'super_admin')
+                ORDER BY FIELD(role, 'super_admin', 'admin'), created_at DESC
+            `);
+        } else {
+            throw err;
+        }
+    }
 
     const invitations = await getAllInvitations();
 

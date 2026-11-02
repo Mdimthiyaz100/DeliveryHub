@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useCart } from "../../context/CartContext";
 
 interface UserSidebarProps {
   cartCount?: number;
@@ -7,10 +8,14 @@ interface UserSidebarProps {
   onOpenSearch?: () => void;
 }
 
-function UserSidebar({ cartCount = 0, onOpenCart, onOpenSearch }: UserSidebarProps) {
+function UserSidebar({ cartCount: propCartCount, onOpenCart, onOpenSearch }: UserSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { cartCount: contextCartCount } = useCart();
+
+  // Prefer context count, or prop count if explicitly provided
+  const activeCartCount = propCartCount !== undefined ? propCartCount : contextCartCount;
 
   const userName = localStorage.getItem("userName") || "Customer";
 
@@ -153,16 +158,16 @@ function UserSidebar({ cartCount = 0, onOpenCart, onOpenSearch }: UserSidebarPro
 
           {/* Cart Icon with Live Count */}
           <button
-            onClick={onOpenCart || (() => navigate("/shop"))}
+            onClick={onOpenCart || (() => navigate("/cart"))}
             className="relative p-1.5 rounded-full hover:bg-[#F7F7F7] text-[#171717] transition-colors flex items-center"
             title="View Cart"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#171717] text-white text-[10px] font-bold flex items-center justify-center">
-                {cartCount}
+            {activeCartCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#171717] text-white text-[10px] font-bold flex items-center justify-center animate-in zoom-in-75 duration-150">
+                {activeCartCount}
               </span>
             )}
           </button>

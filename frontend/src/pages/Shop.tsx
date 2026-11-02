@@ -1,6 +1,8 @@
 import { useState, useEffect, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import UserSidebar from "../components/common/UserSidebar";
+import { useCart } from "../context/CartContext";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80";
 
@@ -74,8 +76,17 @@ interface CartItem extends Product {
 }
 
 function Shop() {
+  const navigate = useNavigate();
+  const { addToCart: contextAddToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem("deliveryhub_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -89,6 +100,24 @@ function Shop() {
   const [sortBy, setSortBy] = useState("popularity");
   const [checkoutStep, setCheckoutStep] = useState(1); // 1: Address, 2: Payment, 3: Review
   const [wishlist, setWishlist] = useState<number[]>([]);
+
+  // Toast feedback state for adding items to cart
+  const [addedProductToast, setAddedProductToast] = useState<{
+    name: string;
+    image?: string;
+    qty: number;
+    price: number | string;
+  } | null>(null);
+  const [addedButtonId, setAddedButtonId] = useState<number | null>(null);
+
+  // Sync cart changes with localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("deliveryhub_cart", JSON.stringify(cart));
+    } catch (e) {
+      console.error("Failed to persist cart:", e);
+    }
+  }, [cart]);
 
   const [checkoutDetails, setCheckoutDetails] = useState({
     name: localStorage.getItem("userName") || "",
@@ -131,6 +160,9 @@ function Shop() {
   };
 
   const addToCart = (product: Product, quantity = 1) => {
+    // Call server/shared cart context
+    contextAddToCart(product, quantity);
+
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
@@ -140,6 +172,20 @@ function Shop() {
       }
       return [...prev, { ...product, qty: quantity }];
     });
+
+    // Provide immediate button visual confirmation
+    setAddedButtonId(product.id);
+    setTimeout(() => {
+      setAddedButtonId((current) => (current === product.id ? null : current));
+    }, 1800);
+
+    // Trigger rich floating banner toast
+    setAddedProductToast({
+      name: product.name,
+      image: product.image_url,
+      qty: quantity,
+      price: product.price,
+    });
   };
 
   const toggleWishlist = (id: number) => {
@@ -148,8 +194,13 @@ function Shop() {
     );
   };
 
-  const cartTotal = cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0);
-  const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
+  const cartTotal = cart.reduce((sum, item) => {
+    const rawPrice = item.price;
+    const price = typeof rawPrice === "number" ? rawPrice : Number(String(rawPrice || "").replace(/[^0-9.]/g, "")) || 0;
+    const qty = Number(item.qty || (item as any).quantity) || 1;
+    return sum + price * qty;
+  }, 0);
+  const cartCount = cart.reduce((sum, item) => sum + (Number(item.qty || (item as any).quantity) || 1), 0);
 
   const openCheckout = () => {
     setCheckoutError("");
@@ -208,6 +259,62 @@ function Shop() {
           el?.focus();
         }}
       />
+
+      {/* Item Added to Cart Floating Toast Notification */}
+      {addedProductToast && (
+        <aside
+          role="status"
+          aria-live="polite"
+          className="fixed top-20 sm:top-24 right-4 sm:right-6 z-50 max-w-sm w-full bg-[#171717] text-white p-4 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-3.5 animate-in slide-in-from-top-4 duration-300 backdrop-blur-md"
+        >
+          <div className="w-12 h-12 rounded-xl bg-white/10 p-1 flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/10">
+            {addedProductToast.image ? (
+              <img
+                src={addedProductToast.image}
+                alt={addedProductToast.name}
+                className="w-full h-full object-contain"
+                onError={(e: any) => (e.target.src = FALLBACK_IMAGE)}
+              />
+            ) : (
+              <span className="text-xl">📦</span>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>Added to Cart</span>
+            </div>
+            <p className="text-xs font-medium text-white truncate mt-0.5">
+              {addedProductToast.name}
+            </p>
+            <p className="text-[11px] text-gray-400 mt-0.5">
+              ₹{Number(addedProductToast.price).toLocaleString()} • Qty: {addedProductToast.qty}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setAddedProductToast(null);
+                navigate("/cart");
+              }}
+              className="px-3 py-1.5 rounded-full bg-orange-500 hover:bg-orange-600 text-white text-[11px] font-bold tracking-tight shadow-sm whitespace-nowrap transition-colors"
+            >
+              View Cart
+            </button>
+            <button
+              onClick={() => setAddedProductToast(null)}
+              className="text-gray-400 hover:text-white p-1 text-sm leading-none"
+              title="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        </aside>
+      )}
 
       {/* Toast Notification */}
       {orderSuccess && (
@@ -615,14 +722,31 @@ function Shop() {
                           </div>
                         </div>
 
-                        {/* Add to Cart button matching reference */}
+                        {/* Add to Cart button with responsive feedback */}
                         <div className="pt-2 flex gap-2">
                           <button
                             onClick={() => addToCart(product)}
-                            className="flex-1 py-2.5 px-4 rounded-full bg-[#171717] hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                            className={`flex-1 py-2.5 px-4 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 shadow-sm ${
+                              addedButtonId === product.id
+                                ? "bg-emerald-600 text-white scale-[1.02]"
+                                : "bg-[#171717] hover:bg-black text-white"
+                            }`}
                           >
-                            <span>🛒</span>
-                            <span>Add to Cart</span>
+                            {addedButtonId === product.id ? (
+                              <>
+                                <svg className="w-4 h-4 text-white animate-in zoom-in-75 duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>Added!</span>
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                </svg>
+                                <span>Add to Cart</span>
+                              </>
+                            )}
                           </button>
                         </div>
                       </div>
@@ -843,11 +967,13 @@ function Shop() {
                     onClick={() => {
                       addToCart(selectedProduct, productDetailQty);
                       setSelectedProduct(null);
-                      setShowCart(true);
                     }}
-                    className="flex-1 py-3 px-6 rounded-full bg-[#171717] hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all"
+                    className="flex-1 py-3 px-6 rounded-full bg-[#171717] hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
                   >
-                    Add to Cart
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <span>Add to Cart</span>
                   </button>
 
                   <button
@@ -912,7 +1038,7 @@ function Shop() {
                       >
                         −
                       </button>
-                      <span className="w-6 text-center text-xs font-bold">{item.qty}</span>
+                      <span className="w-6 text-center text-xs font-bold">{Number(item.qty || (item as any).quantity) || 1}</span>
                       <button
                         onClick={() => updateQty(item.id, 1)}
                         className="w-7 h-7 rounded-full bg-[#F7F7F7] hover:bg-gray-200 text-[#171717] font-bold text-xs"
@@ -922,9 +1048,14 @@ function Shop() {
                     </div>
 
                     <div className="text-right pl-3">
-                      <p className="text-xs font-extrabold text-[#171717]">₹{(Number(item.price) * item.qty).toLocaleString()}</p>
+                      <p className="text-xs font-extrabold text-[#171717]">
+                        ₹{(
+                          (typeof item.price === "number" ? item.price : Number(String(item.price || "").replace(/[^0-9.]/g, "")) || 0) *
+                          (Number(item.qty || (item as any).quantity) || 1)
+                        ).toLocaleString()}
+                      </p>
                       <button
-                        onClick={() => updateQty(item.id, -item.qty)}
+                        onClick={() => updateQty(item.id, -(Number(item.qty || (item as any).quantity) || 1))}
                         className="text-xs text-rose-500 hover:underline mt-1 block"
                       >
                         Remove
@@ -960,10 +1091,13 @@ function Shop() {
                     ← Continue Shopping
                   </button>
                   <button
-                    onClick={openCheckout}
+                    onClick={() => {
+                      setShowCart(false);
+                      navigate("/cart");
+                    }}
                     className="px-8 py-3 rounded-full bg-[#171717] hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-all"
                   >
-                    Proceed to Checkout →
+                    Proceed to Cart →
                   </button>
                 </div>
               </div>

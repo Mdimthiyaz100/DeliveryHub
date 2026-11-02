@@ -17,22 +17,47 @@ export interface UserRecord {
 }
 
 export async function getAllUsers(): Promise<UserRecord[]> {
-    const sql = `
-        SELECT u.id, u.name, u.email, u.role, u.google_id, u.picture, u.auth_provider, u.email_verified, u.status, u.created_at, u.last_login, COUNT(o.id) as total_orders
-        FROM users u
-        LEFT JOIN orders o ON u.id = o.user_id
-        GROUP BY u.id, u.name, u.email, u.role, u.google_id, u.picture, u.auth_provider, u.email_verified, u.status, u.created_at, u.last_login
-        ORDER BY u.id ASC
-    `;
-    return await query<UserRecord[]>(sql);
+    try {
+        const sql = `
+            SELECT u.id, u.name, u.email, u.role, u.google_id, u.picture, u.auth_provider, u.email_verified, u.status, u.created_at, u.last_login, COUNT(o.id) as total_orders
+            FROM users u
+            LEFT JOIN orders o ON u.id = o.user_id
+            GROUP BY u.id, u.name, u.email, u.role, u.google_id, u.picture, u.auth_provider, u.email_verified, u.status, u.created_at, u.last_login
+            ORDER BY u.id ASC
+        `;
+        return await query<UserRecord[]>(sql);
+    } catch (err: any) {
+        if (err.code === 'ER_BAD_FIELD_ERROR' || (err.message && err.message.includes('Unknown column'))) {
+            const fallbackSql = `
+                SELECT u.id, u.name, u.email, u.role, u.created_at, COUNT(o.id) as total_orders
+                FROM users u
+                LEFT JOIN orders o ON u.id = o.user_id
+                GROUP BY u.id, u.name, u.email, u.role, u.created_at
+                ORDER BY u.id ASC
+            `;
+            return await query<UserRecord[]>(fallbackSql);
+        }
+        throw err;
+    }
 }
 
 export async function getUserById(id: number | string): Promise<UserRecord | undefined> {
-    const rows = await query<UserRecord[]>(
-        'SELECT id, name, email, role, google_id, picture, auth_provider, email_verified, status, created_at, last_login FROM users WHERE id = ?', 
-        [id]
-    );
-    return rows[0];
+    try {
+        const rows = await query<UserRecord[]>(
+            'SELECT id, name, email, role, google_id, picture, auth_provider, email_verified, status, created_at, last_login FROM users WHERE id = ?', 
+            [id]
+        );
+        return rows[0];
+    } catch (err: any) {
+        if (err.code === 'ER_BAD_FIELD_ERROR' || (err.message && err.message.includes('Unknown column'))) {
+            const rows = await query<UserRecord[]>(
+                'SELECT id, name, email, role, created_at FROM users WHERE id = ?', 
+                [id]
+            );
+            return rows[0];
+        }
+        throw err;
+    }
 }
 
 export async function getUserByEmail(email: string): Promise<UserRecord | undefined> {
@@ -84,7 +109,15 @@ export async function updateUserStatus(userId: number, status: string) {
 }
 
 export async function updateLastLogin(userId: number) {
-    return await query('UPDATE users SET last_login = NOW() WHERE id = ?', [userId]);
+    try {
+        return await query('UPDATE users SET last_login = NOW() WHERE id = ?', [userId]);
+    } catch (err: any) {
+        // If column 'last_login' does not exist in production schema, don't break login
+        if (err.code === 'ER_BAD_FIELD_ERROR' || (err.message && err.message.includes("Unknown column 'last_login'"))) {
+            return null;
+        }
+        throw err;
+    }
 }
 
 export async function updateProfile(userId: number, name: string, email: string, password?: string) {

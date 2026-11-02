@@ -13,6 +13,10 @@ import Categories from "./pages/Categories";
 import OurStory from "./pages/OurStory";
 import Users from "./pages/Users";
 import AdminManagement from "./pages/AdminManagement";
+import AdminTracking from "./pages/AdminTracking";
+import CustomerTrackPage from "./pages/CustomerTrackPage";
+import Cart from "./pages/Cart";
+import { CartProvider } from "./context/CartContext";
 
 /* ── Admin Layout (Accessible by ADMIN & SUPER_ADMIN) ── */
 function MainLayout({ children }: { children: ReactNode }) {
@@ -84,39 +88,56 @@ function UserLayout({ children }: { children: ReactNode }) {
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Auth entry routes */}
-        <Route path="/" element={<UserLogin />} />
-        <Route path="/login" element={<Navigate to="/" replace />} />
-        <Route path="/admin/login" element={<Login />} />
+      <CartProvider>
+        <Routes>
+          {/* Auth entry routes */}
+          <Route path="/" element={<UserLogin />} />
+          <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route path="/admin/login" element={<Login />} />
 
-        {/* ── Customer Pages ── */}
-        <Route path="/shop" element={<UserLayout><Shop /></UserLayout>} />
-        <Route path="/collections" element={<UserLayout><Collections /></UserLayout>} />
-        <Route path="/categories" element={<UserLayout><Categories /></UserLayout>} />
-        <Route path="/my-orders" element={<UserLayout><MyOrders /></UserLayout>} />
-        <Route path="/our-story" element={<UserLayout><OurStory /></UserLayout>} />
+          {/* ── Public Live Customer Tracking ── */}
+          <Route path="/track" element={<CustomerTrackPage />} />
+          <Route path="/track/:trackingNumber" element={<CustomerTrackPage />} />
 
-        {/* ── Admin Dashboard Pages (Admin + Super Admin) ── */}
-        <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
-        <Route path="/admin/dashboard" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/orders" element={<MainLayout><Orders /></MainLayout>} />
-        <Route path="/delivery" element={<MainLayout><DeliveryStatusPage /></MainLayout>} />
-        <Route path="/users" element={<MainLayout><Users /></MainLayout>} />
+          {/* ── Customer Pages ── */}
+          <Route path="/shop" element={<UserLayout><Shop /></UserLayout>} />
+          <Route path="/cart" element={<UserLayout><Cart /></UserLayout>} />
+          <Route path="/collections" element={<UserLayout><Collections /></UserLayout>} />
+          <Route path="/categories" element={<UserLayout><Categories /></UserLayout>} />
+          <Route path="/my-orders" element={<UserLayout><MyOrders /></UserLayout>} />
+          <Route path="/account" element={<Navigate to="/my-orders?tab=profile" replace />} />
+          <Route path="/account/profile" element={<Navigate to="/my-orders?tab=profile" replace />} />
+          <Route path="/account/orders" element={<Navigate to="/my-orders?tab=orders" replace />} />
+          <Route path="/account/cart" element={<Navigate to="/cart" replace />} />
+          <Route path="/account/wishlist" element={<Navigate to="/my-orders?tab=wishlist" replace />} />
+          <Route path="/account/addresses" element={<Navigate to="/my-orders?tab=addresses" replace />} />
+          <Route path="/account/payments" element={<Navigate to="/my-orders?tab=payments" replace />} />
+          <Route path="/account/settings" element={<Navigate to="/my-orders?tab=settings" replace />} />
+          <Route path="/our-story" element={<UserLayout><OurStory /></UserLayout>} />
 
-        {/* ── Super Admin Dedicated Page ── */}
-        <Route
-          path="/admin/management"
-          element={
-            <SuperAdminLayout>
-              <AdminManagement />
-            </SuperAdminLayout>
-          }
-        />
-        
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* ── Admin Dashboard Pages (Admin + Super Admin) ── */}
+          <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
+          <Route path="/admin/dashboard" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/orders" element={<MainLayout><Orders /></MainLayout>} />
+          <Route path="/tracking" element={<MainLayout><AdminTracking /></MainLayout>} />
+          <Route path="/admin/tracking" element={<Navigate to="/tracking" replace />} />
+          <Route path="/delivery" element={<MainLayout><DeliveryStatusPage /></MainLayout>} />
+          <Route path="/users" element={<MainLayout><Users /></MainLayout>} />
+
+          {/* ── Super Admin Dedicated Page ── */}
+          <Route
+            path="/admin/management"
+            element={
+              <SuperAdminLayout>
+                <AdminManagement />
+              </SuperAdminLayout>
+            }
+          />
+          
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </CartProvider>
     </BrowserRouter>
   );
 }

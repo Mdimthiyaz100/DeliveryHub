@@ -1,8 +1,12 @@
 import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 dotenv.config();
 
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import http from 'http';
+import { initializeSocket } from './socket';
 
 import userRoutes from './routes/userRoutes';
 import adminRoutes from './routes/adminRoutes';
@@ -10,6 +14,10 @@ import orderRoutes from './routes/orderRoutes';
 import dpRoutes from './routes/dproutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import productRoutes from './routes/productRoutes';
+import cartRoutes from './routes/cartRoutes';
+import addressRoutes from './routes/addressRoutes';
+import wishlistRoutes from './routes/wishlistRoutes';
+import trackingRoutes from './routes/trackingRoutes';
 
 const app = express();
 
@@ -61,11 +69,21 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/delivery', dpRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/users/addresses', addressRoutes);
+app.use('/api/users/wishlist', wishlistRoutes);
+app.use('/api/tracking', trackingRoutes);
+app.use('/api/admin/tracking', trackingRoutes);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+export const httpServer = http.createServer(app);
+initializeSocket(httpServer, allowedOrigins);
+
+if (process.env.NODE_ENV !== 'test') {
+    httpServer.listen(PORT, () => {
+        console.log(`Server running with Socket.IO on port ${PORT}`);
+    });
+}
 
 export default app;
 

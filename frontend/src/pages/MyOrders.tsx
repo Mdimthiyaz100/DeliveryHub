@@ -1,194 +1,161 @@
 import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../../api/api";
-import StatusBadge from "../components/common/StatusBadge";
 import UserSidebar from "../components/common/UserSidebar";
+import AccountSidebar from "../components/account/AccountSidebar";
+import ProfileView from "../components/account/ProfileView";
+import OrdersView from "../components/account/OrdersView";
+import WishlistView from "../components/account/WishlistView";
+import AddressesView from "../components/account/AddressesView";
+import PaymentsView from "../components/account/PaymentsView";
+import SettingsView from "../components/account/SettingsView";
 
-function formatOrderItem(item: string) {
-  if (!item) return "";
-  return item.replace(/\s*\(Qty:\s*\d+\)/i, "").trim();
-}
+import { useCart } from "../context/CartContext";
 
-function getOrderQuantity(order: any, products: any[]) {
-  const savedQuantity = Number(order.quantity);
-  if (Number.isInteger(savedQuantity) && savedQuantity > 1) return savedQuantity;
-
-  const itemQuantity = order.item?.match(/\(Qty:\s*(\d+)\)/i);
-  if (itemQuantity) return Number(itemQuantity[1]);
-
-  const product = products.find(
-    ({ name }) => name?.trim().toLowerCase() === order.item?.trim().toLowerCase()
-  );
-  const calculatedQuantity = Number(order.amount) / Number(product?.price);
-
-  if (Number.isInteger(calculatedQuantity) && calculatedQuantity > 1) {
-    return calculatedQuantity;
-  }
-
-  return Number.isInteger(savedQuantity) && savedQuantity > 0 ? savedQuantity : 1;
-}
+export type AccountTab = "profile" | "orders" | "cart" | "wishlist" | "addresses" | "payments" | "settings";
 
 function MyOrders() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { cartCount } = useCart();
+
+  // Tab State synced with URL query ?tab=
+  const initialTab = (searchParams.get("tab") as AccountTab) || "orders";
+  const [activeTab, setActiveTab] = useState<AccountTab>(initialTab);
+
+  // User State
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  // Orders and Products State
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("all");
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
+  // Wishlist item count for sidebar badge
+  const [wishlistCount, setWishlistCount] = useState<number>(0);
+
+  // Sync state if URL changes externally
+  useEffect(() => {
+    const tabParam = searchParams.get("tab") as AccountTab;
+    if (tabParam && ["profile", "orders", "wishlist", "addresses", "payments", "settings"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tab: AccountTab) => {
+    if (tab === "cart") {
+      navigate("/cart");
+      return;
+    }
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
 
   const fetchOrders = () => {
-    setLoading(true);
-    Promise.all([api.get("/orders/my"), api.get("/products")])
+    setLoadingOrders(true);
+    Promise.all([
+      api.get("/orders/my-orders").catch(() => api.get("/orders/my").catch(() => ({ data: [] }))),
+      api.get("/products").catch(() => ({ data: [] })),
+    ])
       .then(([ordersResponse, productsResponse]) => {
         setOrders(ordersResponse.data || []);
         setProducts(productsResponse.data || []);
       })
-      .catch((err) => console.error("Error fetching orders:", err))
-      .finally(() => setLoading(false));
+      .catch((err) => console.error("Error fetching account orders:", err))
+      .finally(() => setLoadingOrders(false));
+  };
+
+  const fetchUserProfile = () => {
+    api
+      .get("/users/profile")
+      .then((res) => {
+        if (res.data) {
+          setUserProfile(res.data);
+          if (res.data.name) localStorage.setItem("userName", res.data.name);
+          if (res.data.email) localStorage.setItem("userEmail", res.data.email);
+        }
+      })
+      .catch((err) => console.error("Error fetching user profile:", err));
+  };
+
+  const updateWishlistCounter = () => {
+    try {
+      const saved = localStorage.getItem("deliveryhub_wishlist");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setWishlistCount(Array.isArray(parsed) ? parsed.length : 0);
+      }
+    } catch (e) {
+      // Ignored
+    }
   };
 
   useEffect(() => {
     fetchOrders();
+    fetchUserProfile();
+    updateWishlistCounter();
   }, []);
 
-  const filteredOrders = orders.filter((o) => {
-    if (activeTab === "all") return true;
-    return (o.delivery_status || "pending").toLowerCase() === activeTab;
-  });
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("portalContext");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userPicture");
+    localStorage.removeItem("user");
+    navigate("/", { replace: true });
+  };
 
   return (
-    <div className="min-h-screen bg-white text-[#171717] font-sans antialiased">
+    <div className="min-h-screen bg-[#FDFDFD] text-[#171717] font-sans antialiased">
       {/* Concept Header */}
       <UserSidebar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          {/* Left Account Sidebar matching Reference Image 7 */}
-          <aside className="lg:col-span-3 bg-[#F7F7F7] border border-[#EAEAEA] rounded-[22px] p-6 space-y-6">
-            <h3 className="text-base font-extrabold text-[#171717]">My Account</h3>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+          {/* Left Account Sidebar with SVG icons and active highlights */}
+          <div className="lg:col-span-3 lg:sticky lg:top-24">
+            <AccountSidebar
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              ordersCount={orders.length}
+              wishlistCount={wishlistCount}
+              cartCount={cartCount}
+            />
+          </div>
 
-            <nav className="space-y-1.5 text-xs font-semibold">
-              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[#777777] hover:text-[#171717] cursor-pointer">
-                <span>👤</span>
-                <span>Profile</span>
-              </div>
-              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white border border-[#EAEAEA] text-orange-500 font-bold shadow-sm cursor-pointer">
-                <span>📦</span>
-                <span>My Orders</span>
-              </div>
-              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[#777777] hover:text-[#171717] cursor-pointer">
-                <span>♥</span>
-                <span>Wishlist</span>
-              </div>
-              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[#777777] hover:text-[#171717] cursor-pointer">
-                <span>📍</span>
-                <span>Addresses</span>
-              </div>
-              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[#777777] hover:text-[#171717] cursor-pointer">
-                <span>💳</span>
-                <span>Payments</span>
-              </div>
-              <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-[#777777] hover:text-[#171717] cursor-pointer">
-                <span>⚙️</span>
-                <span>Settings</span>
-              </div>
-            </nav>
-          </aside>
-
-          {/* Right Orders List matching Reference Image 7 */}
-          <section className="lg:col-span-9 space-y-6">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#171717] tracking-tight">
-                My Orders
-              </h2>
-              <p className="text-xs text-[#777777] mt-1">Track and review past shipments</p>
-            </div>
-
-            {/* Filter Tabs matching Reference: All Orders, Pending, Processing, Shipped, Delivered, Cancelled */}
-            <div className="flex gap-2 overflow-x-auto pb-2 border-b border-[#EAEAEA] text-xs">
-              {[
-                { id: "all", label: "All Orders" },
-                { id: "pending", label: "Pending" },
-                { id: "assigned", label: "Processing" },
-                { id: "picked_up", label: "Shipped" },
-                { id: "delivered", label: "Delivered" },
-                { id: "cancelled", label: "Cancelled" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 rounded-full font-semibold transition-colors whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? "bg-[#171717] text-white"
-                      : "bg-[#F7F7F7] text-[#777777] hover:text-[#171717]"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Orders Cards List */}
-            {loading ? (
-              <div className="py-20 text-center text-[#777777]">
-                <div className="inline-block w-8 h-8 border-2 border-[#171717] border-t-transparent rounded-full animate-spin mb-3"></div>
-                <p className="text-xs font-bold">Querying order history...</p>
-              </div>
-            ) : filteredOrders.length === 0 ? (
-              <div className="bg-[#F7F7F7] rounded-[22px] p-12 text-center text-[#777777] border border-[#EAEAEA]">
-                <span className="text-4xl block mb-2">📦</span>
-                <p className="font-bold text-[#171717]">No shipments found in this category.</p>
-                <div className="pt-4">
-                  <a
-                    href="/shop"
-                    className="inline-block px-6 py-2.5 rounded-full bg-[#171717] text-white text-xs font-bold uppercase tracking-wider"
-                  >
-                    Start Shopping →
-                  </a>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredOrders.map((order) => {
-                  const qty = getOrderQuantity(order, products);
-
-                  return (
-                    <div
-                      key={order.id}
-                      className="bg-white rounded-[20px] border border-[#EAEAEA] p-5 hover:shadow-subtle transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-                    >
-                      {/* Left: Order Info */}
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-xl bg-[#F7F7F7] border border-[#EAEAEA] flex items-center justify-center text-2xl flex-shrink-0">
-                          🎧
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-extrabold text-sm text-[#171717]">
-                              #ORD{String(order.id).padStart(5, "0")}
-                            </span>
-                            <span className="text-[11px] text-[#777777]">
-                              Placed on {order.created_at ? new Date(order.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "Recently"}
-                            </span>
-                          </div>
-                          <h4 className="font-bold text-xs text-[#171717] mt-1">
-                            {formatOrderItem(order.item)}
-                          </h4>
-                          <p className="text-xs font-extrabold text-[#171717] mt-0.5">
-                            ₹{Number(order.amount || 0).toLocaleString()} <span className="text-[11px] font-normal text-[#777777]">({qty} item{qty > 1 ? "s" : ""})</span>
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Right: Status Pill & Action button */}
-                      <div className="flex items-center gap-4 self-end sm:self-center">
-                        <StatusBadge status={order.delivery_status || "pending"} />
-                        <span className="text-xs font-bold text-[#171717] hover:underline cursor-pointer">
-                          Track Order →
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+          {/* Right Content View corresponding to active tab */}
+          <section className="lg:col-span-9 bg-white border border-[#EAEAEA] rounded-[24px] p-6 sm:p-8 lg:p-10 shadow-sm min-h-[600px]">
+            {activeTab === "profile" && (
+              <ProfileView
+                user={userProfile}
+                onProfileUpdated={(updated) => setUserProfile(updated)}
+              />
             )}
+
+            {activeTab === "orders" && (
+              <OrdersView
+                orders={orders}
+                products={products}
+                loading={loadingOrders}
+                onRefreshOrders={fetchOrders}
+                onNavigateShop={() => navigate("/shop")}
+              />
+            )}
+
+            {activeTab === "wishlist" && (
+              <WishlistView
+                onNavigateShop={() => navigate("/shop")}
+                onAddToCart={() => updateWishlistCounter()}
+              />
+            )}
+
+            {activeTab === "addresses" && <AddressesView orders={orders} />}
+
+            {activeTab === "payments" && <PaymentsView orders={orders} />}
+
+            {activeTab === "settings" && <SettingsView onLogout={handleLogout} />}
           </section>
         </div>
       </main>

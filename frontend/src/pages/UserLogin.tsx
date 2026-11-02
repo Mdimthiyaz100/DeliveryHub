@@ -1,6 +1,7 @@
 import { useState, FormEvent, ChangeEvent, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../api/api";
+import loginBg from "../assets/login-bg.jpg";
 
 declare global {
   interface Window {
@@ -206,10 +207,15 @@ function UserLogin() {
 
   return (
     <div className="min-h-screen bg-[#101112] text-white flex flex-col lg:flex-row font-sans">
-      {/* LEFT SIDE — Premium Electronics Showcase */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[#191A1C] relative overflow-hidden flex-col justify-between p-12 border-r border-[#303236]">
+      {/* LEFT SIDE — Premium Electronics Showcase with Neon Tech Background */}
+      <div 
+        className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12 border-r border-[#303236] bg-cover bg-center"
+        style={{
+          backgroundImage: `linear-gradient(to right, rgba(16, 17, 18, 0.88), rgba(16, 17, 18, 0.65)), url(${loginBg})`
+        }}
+      >
         <div className="absolute top-10 -left-10 w-96 h-96 bg-orange-500/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-10 right-0 w-80 h-80 bg-orange-400/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-10 right-0 w-80 h-80 bg-orange-400/15 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center font-black text-white text-xl shadow-sm">

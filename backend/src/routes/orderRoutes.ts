@@ -5,6 +5,7 @@ import { authenticateUser, requireAdmin } from '../middleware/auth';
 const router = Router();
 
 router.get('/my-orders', authenticateUser, orderController.getMyOrders);
+router.patch('/:id/cancel', authenticateUser, orderController.cancelMyOrder);
 router.get('/unassigned/list', authenticateUser, requireAdmin, orderController.getUnassigned);
 router.patch('/:id/assign', authenticateUser, requireAdmin, orderController.assignCourier);
 
