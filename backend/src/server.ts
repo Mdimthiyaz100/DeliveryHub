@@ -1,0 +1,64 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
+import express, { Request, Response } from 'express';
+import cors from 'cors';
+
+import userRoutes from './routes/userRoutes';
+import adminRoutes from './routes/adminRoutes';
+import orderRoutes from './routes/orderRoutes';
+import dpRoutes from './routes/dproutes';
+import dashboardRoutes from './routes/dashboardRoutes';
+import productRoutes from './routes/productRoutes';
+
+const app = express();
+
+const allowedOrigins = [
+    'https://deliveryhub-feh3.onrender.com',
+    'https://deliveryhub-server.onrender.com',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+    process.env.FRONTEND_URL
+].filter(Boolean) as string[];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+            return callback(null, true);
+        }
+        return callback(null, true);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}));
+
+app.use(express.json());
+
+// Health check
+app.get('/', (_req: Request, res: Response) => {
+    res.json({ 
+        status: 'ok', 
+        message: 'DeliveryHub API is running (TypeScript)', 
+        environment: process.env.NODE_ENV || 'development' 
+    });
+});
+
+// Routes
+app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/delivery', dpRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/products', productRoutes);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
+
+export default app;
+

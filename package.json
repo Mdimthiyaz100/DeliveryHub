@@ -3,6 +3,17 @@
   "version": "1.0.0",
   "scripts": {
     "build": "npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend",
-    "start": "npm start --prefix backend"
+    "start": "npm start --prefix backend",
+    "test": "vitest --config frontend/vite.config.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^22.20.3",
+    "jsdom": "^29.1.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "vitest": "^5.0.2"
   }
 }
