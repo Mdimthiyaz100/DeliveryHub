@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/api";
 import UserSidebar from "../components/common/UserSidebar";
 import { useCart } from "../context/CartContext";
@@ -12,63 +12,80 @@ const CURATED_COLLECTIONS = [
     id: "headphones",
     name: "Headphones",
     tagline: "Surround yourself in sound.",
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
-    filter: "Electronics"
+    image: "/images/products/headphones/sony-wh1000xm5.webp",
+    filter: "Headphones"
   },
   {
-    id: "earphones",
-    name: "Earphones",
-    tagline: "Small design, great sound.",
-    image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80",
-    filter: "Accessories"
+    id: "smartphones",
+    name: "Smartphones",
+    tagline: "Next-generation 5G flagship power.",
+    image: "/images/products/smartphones/iphone-16.webp",
+    filter: "Smartphones"
+  },
+  {
+    id: "laptops",
+    name: "Laptops & Hardware",
+    tagline: "Performance for every professional need.",
+    image: "/images/products/laptops/macbook-air.webp",
+    filter: "Laptops & Computers"
+  },
+  {
+    id: "smartwatches",
+    name: "Smartwatches",
+    tagline: "Track your health and daily goals.",
+    image: "/images/products/smartwatches/galaxy-watch.webp",
+    filter: "Smartwatches"
   },
   {
     id: "speakers",
     name: "Speakers",
     tagline: "The world's most immersive sound.",
-    image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&auto=format&fit=crop&q=80",
-    filter: "Electronics"
-  },
-  {
-    id: "accessories",
-    name: "Accessories",
-    tagline: "Optimal condition for years.",
-    image: "https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?w=600&auto=format&fit=crop&q=80",
-    filter: "Accessories"
+    image: "/images/products/speakers/jbl-flip.webp",
+    filter: "Speakers"
   },
   {
     id: "gaming",
-    name: "Gaming",
-    tagline: "Dive into the game with every sound.",
-    image: "https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?w=600&auto=format&fit=crop&q=80",
-    filter: "Electronics"
-  },
-  {
-    id: "laptops",
-    name: "Laptops & Gear",
-    tagline: "Performance for every professional need.",
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&auto=format&fit=crop&q=80",
-    filter: "Accessories"
+    name: "Gaming Gear",
+    tagline: "Precision tactile controls and response.",
+    image: "/images/products/gaming/xbox-controller.webp",
+    filter: "Gaming"
   }
 ];
 
-// Category quick icon cards (Shop By Category row in Concept theme)
+// Category quick cards (Shop By Category row with realistic studio product photos)
 const CATEGORY_CARDS = [
-  { name: "Laptops", icon: "💻", image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&auto=format&fit=crop&q=80", filter: "Accessories" },
-  { name: "Headphones", icon: "🎧", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&auto=format&fit=crop&q=80", filter: "Electronics" },
-  { name: "Earphones", icon: "🎵", image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=300&auto=format&fit=crop&q=80", filter: "Accessories" },
-  { name: "Speakers", icon: "🔊", image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=300&auto=format&fit=crop&q=80", filter: "Electronics" },
-  { name: "Accessories", icon: "🔌", image: "https://images.unsplash.com/photo-1625772452859-1c03d5bf1137?w=300&auto=format&fit=crop&q=80", filter: "Accessories" },
-  { name: "Gaming", icon: "🎮", image: "https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?w=300&auto=format&fit=crop&q=80", filter: "Electronics" },
+  { name: "Smartphones", image: "/images/products/smartphones/iphone-16.webp", filter: "Smartphones" },
+  { name: "Laptops", image: "/images/products/laptops/macbook-air.webp", filter: "Laptops & Computers" },
+  { name: "Headphones", image: "/images/products/headphones/sony-wh1000xm5.webp", filter: "Headphones" },
+  { name: "Earphones", image: "/images/products/earphones/apple-airpods.webp", filter: "Earphones" },
+  { name: "Smartwatches", image: "/images/products/smartwatches/galaxy-watch.webp", filter: "Smartwatches" },
+  { name: "Keyboards & Mice", image: "/images/products/keyboards/keychron-k2.webp", filter: "Keyboards & Mice" },
+  { name: "Monitors", image: "/images/products/monitors/dell-24-ips.webp", filter: "Monitors" },
+  { name: "Storage", image: "/images/products/storage/samsung-t7.webp", filter: "Storage Devices" },
+  { name: "Chargers", image: "/images/products/chargers/anker-20k.webp", filter: "Chargers & Power Banks" },
+  { name: "Speakers", image: "/images/products/speakers/jbl-flip.webp", filter: "Speakers" },
+  { name: "Gaming", image: "/images/products/gaming/xbox-controller.webp", filter: "Gaming" },
+  { name: "Accessories", image: "/images/products/chargers/apple-20w.webp", filter: "Accessories" },
 ];
 
 interface Product {
   id: number;
   name: string;
   price: number | string;
+  original_price?: number | string;
+  discount_percentage?: number;
   category?: string;
+  brand?: string;
+  sku?: string;
   description?: string;
+  short_description?: string;
   image_url?: string;
+  stock?: number;
+  rating?: number;
+  review_count?: number;
+  is_featured?: number | boolean;
+  is_bestseller?: number | boolean;
+  is_new_arrival?: number | boolean;
 }
 
 interface CartItem extends Product {
@@ -77,6 +94,9 @@ interface CartItem extends Product {
 
 function Shop() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlCategory = searchParams.get("category");
+
   const { addToCart: contextAddToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -96,10 +116,22 @@ function Shop() {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderIds, setOrderIds] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(urlCategory || "All");
+  const [selectedBrand, setSelectedBrand] = useState("All");
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(150000);
+  const [minRating, setMinRating] = useState(0);
+  const [onlyInStock, setOnlyInStock] = useState(false);
   const [sortBy, setSortBy] = useState("popularity");
   const [checkoutStep, setCheckoutStep] = useState(1); // 1: Address, 2: Payment, 3: Review
   const [wishlist, setWishlist] = useState<number[]>([]);
+
+  // Update selectedCategory when URL query changes
+  useEffect(() => {
+    if (urlCategory) {
+      setSelectedCategory(urlCategory);
+    }
+  }, [urlCategory]);
 
   // Toast feedback state for adding items to cart
   const [addedProductToast, setAddedProductToast] = useState<{
@@ -128,6 +160,7 @@ function Shop() {
   const [checkoutError, setCheckoutError] = useState("");
 
   useEffect(() => {
+    setLoading(true);
     api.get("/products")
       .then((res) => {
         setProducts(res.data || []);
@@ -136,19 +169,36 @@ function Shop() {
       .finally(() => setLoading(false));
   }, []);
 
-  const categories = ["All", ...new Set(products.map((p) => p.category).filter(Boolean) as string[])];
+  const categories = ["All", ...Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[]))];
+  const brands = ["All", ...Array.from(new Set(products.map((p) => p.brand).filter(Boolean) as string[]))];
 
   const filteredProducts = products
     .filter((p) => {
+      const priceNum = Number(p.price) || 0;
+      const ratingNum = Number(p.rating) || 4.5;
+      const stockNum = Number(p.stock ?? 50);
+
       const matchesQuery =
+        !searchQuery.trim() ||
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.description || "").toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesQuery && (selectedCategory === "All" || p.category === selectedCategory);
+        (p.description || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.brand || "").toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
+      const matchesBrand = selectedBrand === "All" || p.brand === selectedBrand;
+      const matchesPrice = priceNum >= minPrice && priceNum <= maxPrice;
+      const matchesRating = ratingNum >= minRating;
+      const matchesStock = !onlyInStock || stockNum > 0;
+
+      return matchesQuery && matchesCategory && matchesBrand && matchesPrice && matchesRating && matchesStock;
     })
     .sort((a, b) => {
       if (sortBy === "price-low") return Number(a.price) - Number(b.price);
       if (sortBy === "price-high") return Number(b.price) - Number(a.price);
-      return a.id - b.id;
+      if (sortBy === "rating") return (Number(b.rating) || 0) - (Number(a.rating) || 0);
+      if (sortBy === "newest") return b.id - a.id;
+      // Popularity default
+      return ((b.is_bestseller ? 2 : 0) + (b.is_featured ? 1 : 0)) - ((a.is_bestseller ? 2 : 0) + (a.is_featured ? 1 : 0));
     });
 
   const updateQty = (productId: number, delta: number) => {
@@ -541,6 +591,11 @@ function Shop() {
               <button
                 onClick={() => {
                   setSelectedCategory("All");
+                  setSelectedBrand("All");
+                  setMinPrice(0);
+                  setMaxPrice(150000);
+                  setMinRating(0);
+                  setOnlyInStock(false);
                   setSearchQuery("");
                 }}
                 className="text-xs text-[#777777] hover:text-[#171717] font-semibold underline"
@@ -552,58 +607,104 @@ function Shop() {
             {/* Category Filter */}
             <div className="space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-[#171717]">Category</h4>
-              <div className="space-y-2">
-                {categories.map((cat) => (
-                  <label key={cat} className="flex items-center gap-2.5 text-xs text-[#777777] hover:text-[#171717] cursor-pointer">
-                    <input
-                      type="radio"
-                      name="category"
-                      checked={selectedCategory === cat}
-                      onChange={() => setSelectedCategory(cat)}
-                      className="accent-[#171717]"
-                    />
-                    <span>{cat}</span>
-                  </label>
-                ))}
+              <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                {categories.map((cat) => {
+                  const count = cat === "All" ? products.length : products.filter((p) => p.category === cat).length;
+                  return (
+                    <label key={cat} className="flex items-center justify-between text-xs text-[#777777] hover:text-[#171717] cursor-pointer py-0.5">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="category"
+                          checked={selectedCategory === cat}
+                          onChange={() => setSelectedCategory(cat)}
+                          className="accent-[#171717]"
+                        />
+                        <span className={selectedCategory === cat ? "font-bold text-[#171717]" : ""}>{cat}</span>
+                      </div>
+                      <span className="text-[10px] text-gray-400">({count})</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
             {/* Brand Filter */}
             <div className="space-y-3 pt-4 border-t border-[#EAEAEA]">
               <h4 className="text-xs font-bold uppercase tracking-wider text-[#171717]">Brand</h4>
-              <div className="space-y-2 text-xs text-[#777777]">
-                <label className="flex items-center gap-2.5 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="accent-[#171717] rounded" />
-                  <span>Sony &amp; boAt (48)</span>
-                </label>
-                <label className="flex items-center gap-2.5 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="accent-[#171717] rounded" />
-                  <span>DELL &amp; Apple (34)</span>
-                </label>
-                <label className="flex items-center gap-2.5 cursor-pointer">
-                  <input type="checkbox" className="accent-[#171717] rounded" />
-                  <span>JBL &amp; Noise (29)</span>
-                </label>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {brands.map((b) => {
+                  const count = b === "All" ? products.length : products.filter((p) => p.brand === b).length;
+                  return (
+                    <label key={b} className="flex items-center justify-between text-xs text-[#777777] hover:text-[#171717] cursor-pointer py-0.5">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="brand"
+                          checked={selectedBrand === b}
+                          onChange={() => setSelectedBrand(b)}
+                          className="accent-[#171717]"
+                        />
+                        <span className={selectedBrand === b ? "font-bold text-[#171717]" : ""}>{b}</span>
+                      </div>
+                      <span className="text-[10px] text-gray-400">({count})</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Price Filter Slider Simulation */}
+            {/* Price Filter Slider */}
             <div className="space-y-3 pt-4 border-t border-[#EAEAEA]">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#171717]">Price</h4>
-              <input type="range" min="399" max="5000" className="w-full accent-[#171717]" />
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#171717]">Price Limit</h4>
+                <span className="text-xs font-bold text-orange-600">Up to ₹{maxPrice.toLocaleString()}</span>
+              </div>
+              <input
+                type="range"
+                min="500"
+                max="120000"
+                step="500"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                className="w-full accent-[#171717] cursor-pointer"
+              />
               <div className="flex justify-between text-[11px] text-[#777777] font-semibold">
-                <span>₹399</span>
-                <span>₹5,000+</span>
+                <span>₹500</span>
+                <span>₹1,20,000+</span>
               </div>
             </div>
 
             {/* Rating Filter */}
             <div className="space-y-2 pt-4 border-t border-[#EAEAEA]">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#171717]">Rating</h4>
-              <div className="flex items-center gap-1 text-orange-500 text-xs">
-                <span>★★★★★</span>
-                <span className="text-[#777777] text-[11px]">(4.0 &amp; above)</span>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#171717]">Customer Rating</h4>
+              <div className="space-y-1">
+                {[0, 4.5, 4.7, 4.8].map((rate) => (
+                  <label key={rate} className="flex items-center gap-2 text-xs text-[#777777] hover:text-[#171717] cursor-pointer">
+                    <input
+                      type="radio"
+                      name="rating"
+                      checked={minRating === rate}
+                      onChange={() => setMinRating(rate)}
+                      className="accent-[#171717]"
+                    />
+                    <span className="text-orange-500 font-bold">{rate === 0 ? "All Ratings" : `★ ${rate}+ & above`}</span>
+                  </label>
+                ))}
               </div>
+            </div>
+
+            {/* Stock Availability Toggle */}
+            <div className="pt-4 border-t border-[#EAEAEA]">
+              <label className="flex items-center justify-between text-xs text-[#777777] hover:text-[#171717] cursor-pointer">
+                <span className="font-semibold">In Stock Only</span>
+                <input
+                  type="checkbox"
+                  checked={onlyInStock}
+                  onChange={(e) => setOnlyInStock(e.target.checked)}
+                  className="accent-[#171717] rounded w-4 h-4 cursor-pointer"
+                />
+              </label>
             </div>
           </aside>
 
@@ -655,10 +756,11 @@ function Shop() {
                 <p className="text-xs mt-1">Try resetting the filter or using different keywords.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {filteredProducts.map((product) => {
                   const isWishlisted = wishlist.includes(product.id);
-                  const originalPrice = Math.round(Number(product.price) * 1.4);
+                  const origPrice = product.original_price ? Number(product.original_price) : Math.round(Number(product.price) * 1.25);
+                  const discount = product.discount_percentage || Math.round(((origPrice - Number(product.price)) / origPrice) * 100);
 
                   return (
                     <div
@@ -666,9 +768,11 @@ function Shop() {
                       className="bg-white rounded-[20px] border border-[#EAEAEA] overflow-hidden hover:shadow-float transition-all duration-300 flex flex-col justify-between group relative"
                     >
                       {/* Discount Badge */}
-                      <span className="absolute top-3 left-3 z-10 bg-orange-500 text-white text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md">
-                        30% OFF
-                      </span>
+                      {discount > 0 && (
+                        <span className="absolute top-3 left-3 z-10 bg-orange-500 text-white text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md">
+                          {discount}% OFF
+                        </span>
+                      )}
 
                       {/* Wishlist Heart Button */}
                       <button
@@ -684,41 +788,49 @@ function Shop() {
                       {/* Product Image Area */}
                       <div
                         onClick={() => setSelectedProduct(product)}
-                        className="aspect-square bg-[#F7F7F7] p-6 flex items-center justify-center overflow-hidden cursor-pointer"
+                        className="aspect-square bg-[#F7F7F7] p-5 flex items-center justify-center overflow-hidden cursor-pointer"
                       >
                         <img
                           src={product.image_url || FALLBACK_IMAGE}
                           alt={product.name}
-                          className="max-h-48 object-contain group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                          className="max-h-44 w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                           onError={(e: any) => (e.target.src = FALLBACK_IMAGE)}
                         />
                       </div>
 
                       {/* Content Area */}
-                      <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
                         <div>
+                          {product.brand && (
+                            <span className="text-[10px] uppercase font-extrabold tracking-wider text-orange-600 block">
+                              {product.brand}
+                            </span>
+                          )}
                           {/* Product Title */}
                           <h4
                             onClick={() => setSelectedProduct(product)}
-                            className="font-bold text-sm text-[#171717] hover:text-orange-500 transition-colors line-clamp-1 cursor-pointer"
+                            className="font-bold text-xs sm:text-sm text-[#171717] hover:text-orange-500 transition-colors line-clamp-1 cursor-pointer mt-0.5"
                           >
                             {product.name}
                           </h4>
 
                           {/* Ratings */}
                           <div className="flex items-center gap-1.5 text-xs text-[#777777] mt-1">
-                            <span className="text-orange-500">★ 4.6</span>
-                            <span className="text-[11px]">(8,230)</span>
+                            <span className="text-orange-500 font-bold">★ {product.rating || "4.7"}</span>
+                            <span className="text-[11px]">({(product.review_count || 120).toLocaleString()})</span>
                           </div>
 
                           {/* Prices */}
-                          <div className="flex items-baseline gap-2 mt-2">
-                            <span className="text-base font-extrabold text-[#171717]">
+                          <div className="flex items-baseline gap-2 mt-2 flex-wrap">
+                            <span className="text-sm sm:text-base font-extrabold text-[#171717]">
                               ₹{Number(product.price).toLocaleString()}
                             </span>
-                            <span className="text-xs text-[#777777] line-through">
-                              ₹{originalPrice.toLocaleString()}
-                            </span>
+                            {origPrice > Number(product.price) && (
+                              <span className="text-xs text-[#777777] line-through">
+                                ₹{origPrice.toLocaleString()}
+                              </span>
+                            )}
                           </div>
                         </div>
 
@@ -726,7 +838,7 @@ function Shop() {
                         <div className="pt-2 flex gap-2">
                           <button
                             onClick={() => addToCart(product)}
-                            className={`flex-1 py-2.5 px-4 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 shadow-sm ${
+                            className={`flex-1 py-2.5 px-3 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm ${
                               addedButtonId === product.id
                                 ? "bg-emerald-600 text-white scale-[1.02]"
                                 : "bg-[#171717] hover:bg-black text-white"
@@ -741,9 +853,7 @@ function Shop() {
                               </>
                             ) : (
                               <>
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                                </svg>
+                                <span>+</span>
                                 <span>Add to Cart</span>
                               </>
                             )}
