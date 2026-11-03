@@ -159,13 +159,20 @@ function Shop() {
   });
   const [checkoutError, setCheckoutError] = useState("");
 
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
+
   useEffect(() => {
     setLoading(true);
-    api.get("/products")
-      .then((res) => {
-        setProducts(res.data || []);
+    // Fetch products and categories dynamically from MySQL database
+    Promise.all([
+      api.get("/products"),
+      api.get("/products/categories").catch(() => ({ data: [] }))
+    ])
+      .then(([prodRes, catRes]) => {
+        setProducts(prodRes.data || []);
+        setDbCategories(catRes.data || []);
       })
-      .catch((err) => console.error("Error fetching products:", err))
+      .catch((err) => console.error("Error fetching marketplace data:", err))
       .finally(() => setLoading(false));
   }, []);
 
@@ -501,29 +508,34 @@ function Shop() {
         </h2>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {CATEGORY_CARDS.map((cat) => (
-            <button
-              key={cat.name}
-              onClick={() => {
-                setSelectedCategory(cat.filter);
-                const el = document.getElementById("category-listing");
-                el?.scrollIntoView({ behavior: "smooth" });
-              }}
-              className="bg-[#F7F7F7] hover:bg-white rounded-[20px] p-5 border border-[#EAEAEA] hover:border-[#171717] hover:shadow-subtle transition-all duration-300 flex flex-col items-center justify-between group h-44 text-center"
-            >
-              <div className="w-full flex-1 flex items-center justify-center overflow-hidden">
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="max-h-24 object-contain group-hover:scale-110 transition-transform duration-300"
-                />
-              </div>
-              <div className="flex items-center justify-between w-full pt-3 text-xs font-bold text-[#171717]">
-                <span>{cat.name}</span>
-                <span className="text-[#777777] group-hover:translate-x-1 transition-transform">→</span>
-              </div>
-            </button>
-          ))}
+          {(dbCategories.length > 0 ? dbCategories : CATEGORY_CARDS).map((cat: any) => {
+            const catName = cat.name;
+            const catFilter = cat.name || cat.filter;
+            const catImage = cat.image_url || cat.image || "/images/products/headphones/sony-wh1000xm5.webp";
+            return (
+              <button
+                key={catName}
+                onClick={() => {
+                  setSelectedCategory(catFilter);
+                  const el = document.getElementById("category-listing");
+                  el?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="bg-[#F7F7F7] hover:bg-white rounded-[20px] p-5 border border-[#EAEAEA] hover:border-[#171717] hover:shadow-subtle transition-all duration-300 flex flex-col items-center justify-between group h-44 text-center"
+              >
+                <div className="w-full flex-1 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={catImage}
+                    alt={catName}
+                    className="max-h-24 object-contain group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                <div className="flex items-center justify-between w-full pt-3 text-xs font-bold text-[#171717]">
+                  <span className="truncate">{catName}</span>
+                  <span className="text-[#777777] group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -787,7 +799,7 @@ function Shop() {
 
                       {/* Product Image Area */}
                       <div
-                        onClick={() => setSelectedProduct(product)}
+                        onClick={() => navigate(`/product/${product.id}`)}
                         className="aspect-square bg-[#F7F7F7] p-5 flex items-center justify-center overflow-hidden cursor-pointer"
                       >
                         <img
@@ -809,7 +821,7 @@ function Shop() {
                           )}
                           {/* Product Title */}
                           <h4
-                            onClick={() => setSelectedProduct(product)}
+                            onClick={() => navigate(`/product/${product.id}`)}
                             className="font-bold text-xs sm:text-sm text-[#171717] hover:text-orange-500 transition-colors line-clamp-1 cursor-pointer mt-0.5"
                           >
                             {product.name}

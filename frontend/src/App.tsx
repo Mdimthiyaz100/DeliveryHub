@@ -16,6 +16,7 @@ import AdminManagement from "./pages/AdminManagement";
 import AdminTracking from "./pages/AdminTracking";
 import CustomerTrackPage from "./pages/CustomerTrackPage";
 import Cart from "./pages/Cart";
+import ProductDetailPage from "./pages/ProductDetailPage";
 import { CartProvider } from "./context/CartContext";
 
 /* ── Admin Layout (Accessible by ADMIN & SUPER_ADMIN) ── */
@@ -101,6 +102,7 @@ function App() {
 
           {/* ── Customer Pages ── */}
           <Route path="/shop" element={<UserLayout><Shop /></UserLayout>} />
+          <Route path="/product/:id" element={<UserLayout><ProductDetailPage /></UserLayout>} />
           <Route path="/cart" element={<UserLayout><Cart /></UserLayout>} />
           <Route path="/collections" element={<UserLayout><Collections /></UserLayout>} />
           <Route path="/categories" element={<UserLayout><Categories /></UserLayout>} />

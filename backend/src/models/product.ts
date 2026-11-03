@@ -90,7 +90,56 @@ export async function getAllProducts(options: ProductFilterOptions = {}) {
 
 export async function getProductById(id: number | string) {
     const rows = await query<any[]>('SELECT * FROM products WHERE id = ? OR slug = ?', [id, id]);
-    return rows[0];
+    if (!rows[0]) return null;
+    const product = rows[0];
+
+    // Fetch product images
+    const images = await getProductImages(product.id);
+    // Fetch product specifications
+    const specifications = await getProductSpecifications(product.id);
+    // Fetch product variants
+    const variants = await getProductVariants(product.id);
+
+    return {
+        ...product,
+        images,
+        specifications,
+        variants
+    };
+}
+
+export async function getProductImages(productId: number | string) {
+    return await query<any[]>(
+        'SELECT id, product_id, image_url, is_primary, display_order, color_name FROM product_images WHERE product_id = ? ORDER BY is_primary DESC, display_order ASC, id ASC',
+        [productId]
+    );
+}
+
+export async function getProductSpecifications(productId: number | string) {
+    return await query<any[]>(
+        'SELECT id, product_id, specification_name, specification_value, display_order FROM product_specifications WHERE product_id = ? ORDER BY display_order ASC, id ASC',
+        [productId]
+    );
+}
+
+export async function getProductVariants(productId: number | string) {
+    return await query<any[]>(
+        'SELECT id, product_id, variant_name, color_code, color_name, sku, price, stock, image_url FROM product_variants WHERE product_id = ? ORDER BY id ASC',
+        [productId]
+    );
+}
+
+export async function getRelatedProducts(productId: number | string, category: string, limit = 4) {
+    const safeLimit = Math.max(1, Math.min(20, Number(limit) || 4));
+    return await query<any[]>(
+        `SELECT * FROM products 
+         WHERE id != ? 
+           AND (category = ? OR category_id = (SELECT id FROM categories WHERE name = ? OR slug = ? LIMIT 1)) 
+           AND is_active = 1 
+         ORDER BY rating DESC, is_featured DESC 
+         LIMIT ${safeLimit}`,
+        [productId, category, category, category]
+    );
 }
 
 export async function getCategories() {
@@ -107,5 +156,67 @@ export async function getBrands() {
     `);
     return rows;
 }
+
+export async function createProduct(data: {
+    name: string;
+    description: string;
+    price: number;
+    image_url: string;
+    category: string;
+    stock?: number;
+    brand?: string;
+    sku?: string;
+}) {
+    const sql = `
+        INSERT INTO products (name, description, price, image_url, category, stock, brand, sku, is_active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+    `;
+    const result = await query<any>(sql, [
+        data.name,
+        data.description || '',
+        data.price,
+        data.image_url,
+        data.category,
+        data.stock ?? 10,
+        data.brand || null,
+        data.sku || null
+    ]);
+    return { id: result.insertId, ...data };
+}
+
+export async function updateProduct(id: number | string, data: Partial<{
+    name: string;
+    description: string;
+    price: number;
+    image_url: string;
+    category: string;
+    stock: number;
+    brand: string;
+    sku: string;
+    is_active: number;
+}>) {
+    const fields: string[] = [];
+    const values: any[] = [];
+
+    for (const [key, val] of Object.entries(data)) {
+        if (val !== undefined) {
+            fields.push(`${key} = ?`);
+            values.push(val);
+        }
+    }
+
+    if (fields.length === 0) return null;
+
+    values.push(id);
+    await query(`UPDATE products SET ${fields.join(', ')} WHERE id = ?`, values);
+    return await getProductById(id);
+}
+
+export async function deleteProduct(id: number | string) {
+    // Cascades delete related images, specs, variants
+    const result = await query<any>('DELETE FROM products WHERE id = ?', [id]);
+    return result.affectedRows > 0;
+}
+
 
 
